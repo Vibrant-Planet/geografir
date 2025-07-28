@@ -1,0 +1,8 @@
+[project]
+name = "geografir"
+version = "0.1.0"
+description = "A collection of Python helpers primarily targeted toward geospatial recipes"
+readme = "README.md"
+requires-python = ">=3.12"
+license-files = ["LICENSE"]
+dependencies = []
