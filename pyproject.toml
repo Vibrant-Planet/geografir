@@ -21,3 +21,9 @@ object_storage = { workspace = true }
 members = [
     "object_storage",
 ]
+
+[tool.pytest.ini_options]
+filterwarnings = [
+    # Somehow ShapelyDeprecationWarning causes an error without this line
+    "ignore::DeprecationWarning:shapely",
+]
