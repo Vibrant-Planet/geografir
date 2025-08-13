@@ -5,10 +5,21 @@ description = "A collection of Python helpers primarily targeted toward geospati
 readme = "README.md"
 requires-python = ">=3.12"
 license-files = ["LICENSE"]
-dependencies = []
+dependencies = [
+    "bounding-box",
+    "pydantic>=2.11.7",
+]
 
 [dependency-groups]
 dev = [
     "ruff>=0.12.8",
     "ty>=0.0.1a17",
 ]
+
+[tool.uv.workspace]
+members = [
+    "bounding_box",
+]
+
+[tool.uv.sources]
+bounding-box = { workspace = true }
