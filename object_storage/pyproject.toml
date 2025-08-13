@@ -1,15 +1,10 @@
 [project]
 name = "object-storage"
 version = "0.1.0"
-description = "Add your description here"
+description = "S3 object location and object storage"
 readme = "README.md"
-authors = [
-    { name = "mitchellgritts", email = "mitchell@vibrantplanet.net" }
-]
 requires-python = ">=3.12"
-dependencies = [
-    "pydantic>=2.11.7",
-]
+dependencies = ["pydantic>=2.11.7"]
 
 [build-system]
 requires = ["uv_build>=0.8.0,<0.9"]
