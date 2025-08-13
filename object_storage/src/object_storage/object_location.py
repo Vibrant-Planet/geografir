@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-import json
 
 from urllib.parse import urlparse
 
@@ -22,11 +21,6 @@ class S3ObjectLocation(BaseModel):
     @property
     def is_directory(self):
         return self.path.endswith("/")
-
-    @property
-    def serialized(self) -> dict:
-        """Serialized representation of S3ObjectLocation."""
-        return json.loads(self.model_dump_json())
 
     @property
     def s3_uri(self) -> str:
