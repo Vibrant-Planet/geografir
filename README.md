@@ -20,3 +20,16 @@ uv sync --dev
 # 5. verify everything is working as it should
 uv run pre-commit run --all-files
 ```
+
+## Add a new package to be published out of this repo
+
+This repository publishes multiple library packages. To add a new one, run these commands.
+
+```shell
+uv init --lib my_new_library_package
+```
+
+Add dependencies for just that package with the following (`pydantic` is an example dependency):
+```shell
+uv add --package my_new_library_package pydantic
+```
