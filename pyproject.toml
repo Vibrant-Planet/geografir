@@ -12,3 +12,8 @@ dev = [
     "ruff>=0.12.8",
     "ty>=0.0.1a17",
 ]
+
+[tool.uv.workspace]
+members = [
+    "object_storage",
+]
