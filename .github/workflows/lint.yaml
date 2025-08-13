@@ -14,8 +14,13 @@ jobs:
     name: Pre-commit checks
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-python@v5
+      - name: Checkout Repo
+        uses: actions/checkout@v4
+      
+      - name: Install uv and set the python version
+        uses: astral-sh/setup-uv@v6
         with:
           python-version: "3.12"
-      - uses: pre-commit/action@v3.0.1
+
+      - name: Run Pre-Commit
+        uses: pre-commit/action@v3.0.1
