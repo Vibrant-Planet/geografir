@@ -1,7 +1,12 @@
 name: Lint
 
 on:
-  workflow_call:
+  pull_request:
+    branches:
+      - main
+  push:
+    branches:
+      - main
 
 jobs:
   # See: https://github.com/pre-commit/action

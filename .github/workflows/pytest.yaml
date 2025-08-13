@@ -1,7 +1,12 @@
 name: Pytest
 
 on:
-  workflow_call:
+  pull_request:
+    branches:
+      - main
+  push:
+    branches:
+      - main
 
 jobs:
   pytest:
@@ -9,7 +14,9 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        python-version: ['3.11', '3.12']
+        python-version: 
+          - "3.11"
+          - "3.12"
 
     steps:
       - name: Checkout code
