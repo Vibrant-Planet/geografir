@@ -7,6 +7,7 @@ from urllib.parse import urlparse
 from pydantic import BaseModel
 
 
+# TODO: do we want any validator methods?
 class S3ObjectLocation(BaseModel):
     """Location in an cloud object store.
 
@@ -23,22 +24,12 @@ class S3ObjectLocation(BaseModel):
         return self.path.endswith("/")
 
     @property
-    def is_raster(self) -> bool:
-        """Determines if the S3ObjectLocation is a raster."""
-        return self.path.endswith(".tif") or self.path.endswith(".vrt")
-
-    @property
-    def is_parquet(self) -> bool:
-        """Determines if the S3ObjectLocation is a parquet file."""
-        return self.path.endswith(".parquet")
-
-    @property
     def serialized(self) -> dict:
         """Serialized representation of S3ObjectLocation."""
         return json.loads(self.model_dump_json())
 
     @property
-    def as_s3_uri(self) -> str:
+    def s3_uri(self) -> str:
         """Get an S3 URI of the S3ObjectLocation"""
         return f"s3://{self.bucket}/{self.path}"
 
@@ -55,11 +46,6 @@ class S3ObjectLocation(BaseModel):
         path_extension = new_part[1:] if new_part.startswith("/") else new_part
 
         return S3ObjectLocation(bucket=self.bucket, path=f"{path}/{path_extension}")
-
-    def validate(self) -> bool:
-        # TODO: do we want to validate the that this is a valid path doesn't have to point to anything
-        # come up with regex, what does it mean to be a valid path?
-        return True
 
     @staticmethod
     def from_s3_uri(s3_uri: str) -> S3ObjectLocation:
