@@ -3,7 +3,7 @@ import pytest
 import boto3
 from moto import mock_aws
 
-from object_storage.storage_helpers import ObjectStoreClient
+from object_storage.object_store_client import ObjectStoreClient
 from object_storage.object_location import ObjectLocation
 
 TEST_BUCKET = "test_bucket"
