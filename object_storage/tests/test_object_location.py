@@ -1,8 +1,8 @@
-from object_storage.object_location import S3ObjectLocation
+from object_storage.object_location import ObjectLocation
 
 
 def test_object_location():
-    s3_object_location = S3ObjectLocation(
+    s3_object_location = ObjectLocation(
         bucket="test-bucket",
         path="test-key",
     )
@@ -13,7 +13,7 @@ def test_object_location():
 
 
 def test_object_location_is_directory():
-    s3_object_location = S3ObjectLocation(
+    s3_object_location = ObjectLocation(
         bucket="test-bucket",
         path="test-key/",
     )
@@ -21,13 +21,13 @@ def test_object_location_is_directory():
 
 
 def test_object_location_s3_uri():
-    s3_object_location = S3ObjectLocation(
+    s3_object_location = ObjectLocation(
         bucket="test-bucket",
         path="test-key.tif",
     )
     assert s3_object_location.s3_uri == "s3://test-bucket/test-key.tif"
 
-    s3_dir_location = S3ObjectLocation(
+    s3_dir_location = ObjectLocation(
         bucket="test-bucket",
         path="test-key/",
     )
@@ -35,17 +35,17 @@ def test_object_location_s3_uri():
 
 
 def test_object_location_extend():
-    s3_object_location = S3ObjectLocation(
+    s3_object_location = ObjectLocation(
         bucket="test-bucket",
         path="test-key/",
     )
 
-    assert s3_object_location.extend("new-key.tif") == S3ObjectLocation(
+    assert s3_object_location.extend("new-key.tif") == ObjectLocation(
         bucket="test-bucket",
         path="test-key/new-key.tif",
     )
 
-    assert s3_object_location.extend("/another-key.tif") == S3ObjectLocation(
+    assert s3_object_location.extend("/another-key.tif") == ObjectLocation(
         bucket="test-bucket",
         path="test-key/another-key.tif",
     )
@@ -53,18 +53,18 @@ def test_object_location_extend():
 
 def test_object_location_from_s3_uri():
     s3_uri = "s3://test-bucket/test-key/test-key.tif"
-    assert S3ObjectLocation.from_s3_uri(s3_uri) == S3ObjectLocation(
+    assert ObjectLocation.from_s3_uri(s3_uri) == ObjectLocation(
         bucket="test-bucket",
         path="test-key/test-key.tif",
     )
 
 
 def test_file_location_eq():
-    dummy_file_location = S3ObjectLocation(bucket="test-bucket", path="test/dummy.txt")
-    dummy_file_location_one = S3ObjectLocation(
+    dummy_file_location = ObjectLocation(bucket="test-bucket", path="test/dummy.txt")
+    dummy_file_location_one = ObjectLocation(
         bucket="test-bucket", path="test/dummy.txt"
     )
-    dummy_file_location_two = S3ObjectLocation(
+    dummy_file_location_two = ObjectLocation(
         bucket="test-bucket", path="test/works2.txt"
     )
 
@@ -73,11 +73,11 @@ def test_file_location_eq():
 
 
 def test_file_location_hash():
-    dummy_file_location = S3ObjectLocation(bucket="test-bucket", path="test/dummy.txt")
-    dummy_file_location_one = S3ObjectLocation(
+    dummy_file_location = ObjectLocation(bucket="test-bucket", path="test/dummy.txt")
+    dummy_file_location_one = ObjectLocation(
         bucket="test-bucket", path="test/dummy.txt"
     )
-    dummy_file_location_two = S3ObjectLocation(
+    dummy_file_location_two = ObjectLocation(
         bucket="test-bucket", path="test/works2.txt"
     )
 
