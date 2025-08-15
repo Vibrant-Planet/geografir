@@ -4,7 +4,7 @@ import boto3
 from moto import mock_aws
 from tempfile import TemporaryDirectory
 
-from object_storage.object_store_client import ObjectStoreClient
+from object_storage.object_store import ObjectStore
 from object_storage.object_location import ObjectLocation
 
 TEST_BUCKET = "test_bucket"
@@ -37,7 +37,7 @@ def create_files(s3):
 
 def test_list_files(s3):
     create_files(s3)
-    client = ObjectStoreClient(s3_client=s3)
+    client = ObjectStore(s3_client=s3)
 
     object_location = ObjectLocation(bucket=TEST_BUCKET, path="path/")
     files = client.list_files(object_location)
@@ -50,7 +50,7 @@ def test_list_files(s3):
 
 def test_download_file(s3):
     create_files(s3)
-    client = ObjectStoreClient(s3_client=s3)
+    client = ObjectStore(s3_client=s3)
 
     object_location = ObjectLocation(bucket=TEST_BUCKET, path="path/one.txt")
 
@@ -67,7 +67,7 @@ def test_download_file(s3):
 
 def test_download_file_with_local_name_override(s3):
     create_files(s3)
-    client = ObjectStoreClient(s3_client=s3)
+    client = ObjectStore(s3_client=s3)
 
     object_location = ObjectLocation(bucket=TEST_BUCKET, path="path/one.txt")
 
@@ -85,7 +85,7 @@ def test_download_file_with_local_name_override(s3):
 
 def test_download_directory(s3):
     create_files(s3)
-    client = ObjectStoreClient(s3_client=s3)
+    client = ObjectStore(s3_client=s3)
 
     object_location = ObjectLocation(bucket=TEST_BUCKET, path="path/")
 
@@ -102,7 +102,7 @@ def test_download_directory(s3):
 
 def test_upload_file(s3):
     create_files(s3)
-    client = ObjectStoreClient(s3_client=s3)
+    client = ObjectStore(s3_client=s3)
 
     upload_location = ObjectLocation(bucket=TEST_BUCKET, path="path/")
     object_location = upload_location.extend("upload.txt")

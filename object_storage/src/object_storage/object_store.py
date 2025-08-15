@@ -3,13 +3,12 @@ from __future__ import annotations
 import logging
 import os
 
-import boto3
 from botocore.client import BaseClient
 
 from object_storage.object_location import ObjectLocation
 
 
-class ObjectStoreClient:
+class ObjectStore:
     """Wrapper class for client and other info that is common to all object store calls.
 
     Args:
@@ -24,26 +23,6 @@ class ObjectStoreClient:
     def __init__(self, s3_client: BaseClient, requester_pays: bool = False):
         self._s3_client = s3_client
         self._requester_pays = requester_pays
-
-    @staticmethod
-    def get_client(
-        aws_credentials: dict, region: str, requester_pays: bool = False
-    ) -> ObjectStoreClient:
-        """Constructs a boto3 s3 client function, to be used by various s3 helpers.
-
-        Can be replaced with a different function when mocking s3 buckets.
-
-        Args:
-            aws_credentials (dict): dict of aws_access_key_id and aws_secret_access_key to use
-            region (str): AWS region name
-            requester_pays (bool): whether a "requester pays" instruction should be injected into calls
-        """
-        return ObjectStoreClient(
-            s3_client=boto3.client(
-                "s3", region_name=region, aws_credentials=aws_credentials
-            ),
-            requester_pays=requester_pays,
-        )
 
     def list_files(
         self,
