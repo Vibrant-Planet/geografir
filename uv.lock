@@ -301,22 +301,16 @@ version = "0.1.0"
 source = { editable = "object_storage" }
 dependencies = [
     { name = "boto3" },
-    { name = "pydantic" },
-]
-
-[package.dev-dependencies]
-dev = [
     { name = "moto" },
+    { name = "pydantic" },
 ]
 
 [package.metadata]
 requires-dist = [
     { name = "boto3", specifier = ">=1.40.9" },
+    { name = "moto", specifier = ">=5.1.10" },
     { name = "pydantic", specifier = ">=2.11.7" },
 ]
-
-[package.metadata.requires-dev]
-dev = [{ name = "moto", specifier = ">=5.1.10" }]
 
 [[package]]
 name = "packaging"
