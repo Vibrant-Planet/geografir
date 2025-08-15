@@ -14,7 +14,8 @@ dependencies = [
 requires = ["uv_build>=0.8.0,<0.9"]
 build-backend = "uv_build"
 
-[dependency-groups]
-dev = [
-    "moto>=5.1.10",
-]
+# TODO: figure out how to get CI to install the dev dependencies and remove moto above
+# [dependency-groups]
+# dev = [
+#     "moto>=5.1.10",
+# ]
