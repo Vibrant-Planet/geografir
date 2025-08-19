@@ -9,6 +9,7 @@ dependencies = ["object_storage"]
 
 [dependency-groups]
 dev = [
+    "moto>=5.1.10",
     "pytest>=8.4.1",
     "ruff>=0.12.8",
     "ty>=0.0.1a17",
