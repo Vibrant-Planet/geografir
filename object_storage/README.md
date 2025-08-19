@@ -22,7 +22,7 @@ import boto3
 from geografir.object_storage import ObjectLocation, ObjectStore
 
 # Identify objects stored in S3 with ObjectLocation
-dir_location = ObjectLocation(bucket="my-bucket", path="dir")
+dir_location = ObjectLocation(bucket="my-bucket", path="dir/")
 file_location = ObjectLocation(bucket="my-bucket", path="dir/object-1.json")
 
 # Interact with these objects with ObjectStore
