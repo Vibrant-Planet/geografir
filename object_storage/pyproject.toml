@@ -6,7 +6,6 @@ readme = "README.md"
 requires-python = ">=3.12"
 dependencies = [
     "boto3>=1.40.9",
-    "moto>=5.1.10",
     "pydantic>=2.11.7",
 ]
 
@@ -14,8 +13,7 @@ dependencies = [
 requires = ["uv_build>=0.8.0,<0.9"]
 build-backend = "uv_build"
 
-# TODO: figure out how to get CI to install the dev dependencies and remove moto above
-# [dependency-groups]
-# dev = [
-#     "moto>=5.1.10",
-# ]
+[dependency-groups]
+dev = [
+    "moto>=5.1.10",
+]
