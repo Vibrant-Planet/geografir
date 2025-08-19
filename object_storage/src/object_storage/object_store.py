@@ -121,15 +121,15 @@ class ObjectStore:
 
         remote_locations = self.list_files(object_location=object_location)
 
-        local_file_paths = [
+        local_filepaths = [
             self.download_file(
                 object_location=object_location,
                 local_directory=local_directory,
             )
             for object_location in remote_locations
         ]
-        logging.debug(f"Downloaded {len(local_file_paths)} files in {local_directory}")
-        return local_file_paths
+        logging.debug(f"Downloaded {len(local_filepaths)} files in {local_directory}")
+        return local_filepaths
 
     def upload_file(
         self,
@@ -155,3 +155,89 @@ class ObjectStore:
             Key=object_location.path,
         )
         logging.debug(f"Uploaded {local_filepath} to {object_location}")
+
+    def upload_directory(
+        self,
+        object_location: ObjectLocation,
+        local_directory: str,
+    ) -> None:
+        """Uploads all files from a local directory to s3. Directories with subdirectories are not supported.
+
+        Args:
+            object_location (ObjectLocation): s3 bucket and full s3 file path
+            local_directory (str): a destination directory for the files
+
+        Returns:
+            List of all local file names that were uploaded.
+        """
+        filenames = os.listdir(local_directory)
+
+        for filename in filenames:
+            local_filepath = os.path.join(local_directory, filename)
+            remote_location = object_location.extend(filename)
+
+            self.upload_file(
+                object_location=remote_location,
+                local_filepath=local_filepath,
+            )
+
+    def remote_file_exists(
+        self,
+        object_location: ObjectLocation,
+    ) -> bool:
+        """Return True if the object_location exists in S3.
+
+        Args:
+            object_location (ObjectLocation): s3 bucket and full s3 file path
+        """
+        # list_objects with a max keys of 1 will check for both complete
+        # and incomplete (directory/prefix) paths
+        response = self._s3_client.list_objects_v2(
+            Bucket=object_location.bucket, Prefix=object_location.path, MaxKeys=1
+        )
+
+        # If 'Contents' is in the response, it means objects with that prefix exist.
+        return "Contents" in response
+
+    def copy_remote_file(
+        self,
+        src_object_location: ObjectLocation,
+        dst_object_location: ObjectLocation,
+    ) -> None:
+        """Copies a file from one s3 location to another.
+
+        Args:
+            src_object_location(ObjectLocation): source location
+            dst_object_location(ObjectLocation): destination location
+        """
+        logging.debug(f"Copying {src_object_location} to {dst_object_location}")
+        self._s3_client.copy(
+            {
+                "Bucket": src_object_location.bucket,
+                "Key": src_object_location.path,
+            },
+            dst_object_location.bucket,
+            dst_object_location.path,
+        )
+
+    def copy_remote_directory(
+        self,
+        src_object_location: ObjectLocation,
+        dst_object_location: ObjectLocation,
+    ) -> None:
+        """Copies all files in one directory to another directory.
+
+        Args:
+            src_object_location(ObjectLocation): source location
+            dst_object_location(ObjectLocation): destination location
+        """
+        logging.debug(f"Copying {src_object_location} to {dst_object_location}")
+
+        src_locations = self.list_files(src_object_location)
+
+        for src_location in src_locations:
+            dst_location = dst_object_location.extend(
+                os.path.basename(src_location.path)
+            )
+
+            self.copy_remote_file(src_location, dst_location)
