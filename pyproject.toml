@@ -18,6 +18,7 @@ object_storage = { workspace = true }
 members = ["object_storage", "geometry"]
 
 [tool.pytest.ini_options]
+addopts = ["--import-mode=importlib"]
 filterwarnings = [
     # Somehow ShapelyDeprecationWarning causes an error without this line
     "ignore::DeprecationWarning:shapely",
