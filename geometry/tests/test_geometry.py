@@ -2,17 +2,18 @@ from geometry.geometry import Geometry
 
 import pytest
 
+from pyproj import CRS
+from pyproj.exceptions import CRSError
 from shapely.geometry import (
-    Point,
-    LineString,
-    Polygon,
-    MultiPoint,
-    MultiLineString,
-    MultiPolygon,
     GeometryCollection,
+    LineString,
+    MultiLineString,
+    MultiPoint,
+    MultiPolygon,
+    Point,
+    Polygon,
 )
 from shapely.geometry.base import BaseGeometry
-from pyproj import CRS
 
 geometry_types_test_data = [
     (Point(51, -1), 4326),
@@ -84,5 +85,5 @@ def test_geometry_init_crs(geom, crs, epsg_id):
 
 def test_init_invalid_crs():
     pt = Point(1, 2)
-    with pytest.raises(ValueError, match="Invalid CRS specification"):
+    with pytest.raises(CRSError, match="Invalid target CRS specification"):
         Geometry(pt, "invalid_crs")

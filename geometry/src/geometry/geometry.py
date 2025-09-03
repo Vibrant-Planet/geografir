@@ -5,7 +5,8 @@ A simple geospatial geometry package wrapping Shapely geometries with CRS inform
 from shapely.geometry.base import BaseGeometry
 
 from pyproj import CRS
-from pyproj.exceptions import CRSError
+
+from geometry.crs import ensure_crs
 
 
 class Geometry:
@@ -39,13 +40,6 @@ class Geometry:
             raise TypeError(
                 f"geometry must be a Shapely BaseGeometry, got {type(geometry)}"
             )
-        self.geometry = geometry
 
-        # Convert CRS to pyproj CRS object if needed
-        if isinstance(crs, CRS):
-            self.crs = crs
-        else:
-            try:
-                self.crs = CRS.from_user_input(crs)
-            except CRSError as e:
-                raise ValueError(f"Invalid CRS specification: {crs}") from e
+        self.geometry = geometry
+        self.crs = ensure_crs(crs)
