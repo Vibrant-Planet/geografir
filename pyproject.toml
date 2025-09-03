@@ -21,6 +21,7 @@ object_storage = { workspace = true }
 [tool.uv.workspace]
 members = [
     "object_storage",
+    "geometry",
 ]
 
 [tool.pytest.ini_options]

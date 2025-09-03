@@ -5,6 +5,7 @@ requires-python = ">=3.12"
 [manifest]
 members = [
     "geografir",
+    "geometry",
     "object-storage",
 ]
 
@@ -199,6 +200,11 @@ dev = [
     { name = "ruff", specifier = ">=0.12.8" },
     { name = "ty", specifier = ">=0.0.1a17" },
 ]
+
+[[package]]
+name = "geometry"
+version = "0.1.0"
+source = { editable = "geometry" }
 
 [[package]]
 name = "idna"
