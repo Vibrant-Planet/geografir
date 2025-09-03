@@ -5,23 +5,17 @@ description = "A collection of Python helpers primarily targeted toward geospati
 readme = "README.md"
 requires-python = ">=3.12"
 license-files = ["LICENSE"]
-dependencies = ["object_storage"]
+dependencies = ["geometry", "object_storage"]
 
 [dependency-groups]
-dev = [
-    "moto>=5.1.10",
-    "pytest>=8.4.1",
-    "ruff>=0.12.8",
-    "ty>=0.0.1a17",
-]
+dev = ["moto>=5.1.10", "pytest>=8.4.1", "ruff>=0.12.8", "ty>=0.0.1a17"]
 
 [tool.uv.sources]
+geometry = { workspace = true }
 object_storage = { workspace = true }
 
 [tool.uv.workspace]
-members = [
-    "object_storage",
-]
+members = ["object_storage", "geometry"]
 
 [tool.pytest.ini_options]
 filterwarnings = [
