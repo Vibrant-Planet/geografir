@@ -18,7 +18,7 @@ def ensure_crs(crs: CRS | str | int) -> CRS:
         CRS: A pyproj CRS object
 
     Raises:
-        ValueError: If the crs cannot be converted to a valid CRS
+        CRSError: If the crs cannot be converted to a valid CRS
 
     Examples:
         >>> ensure_crs("EPSG:4326")
