@@ -53,7 +53,7 @@ class BoundingBox:
 
         return BoundingBox(minx, miny, maxx, maxy, crs=geometry.crs)
 
-    # Magic methods (dunder methods)
+    # Magic methods (dunder methods) ----------------------------------------------
     def __repr__(self) -> str:
         crs_repr = self.crs.to_string()
         return f"BoundingBox(minx={self.minx}, miny={self.miny}, maxx={self.maxx}, maxy={self.maxy}, crs='{crs_repr}')"

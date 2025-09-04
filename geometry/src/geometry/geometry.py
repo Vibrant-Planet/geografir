@@ -43,3 +43,8 @@ class Geometry:
 
         self.geometry = geometry
         self.crs = ensure_crs(crs)
+
+    # Magic methods (dunder methods) ----------------------------------------------
+    def __repr__(self) -> str:
+        crs_repr = self.crs.to_string()
+        return f"Geometry(geometry={self.geometry!r}, crs='{crs_repr}')"

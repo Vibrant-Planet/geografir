@@ -87,3 +87,9 @@ def test_init_invalid_crs():
     pt = Point(1, 2)
     with pytest.raises(CRSError, match="Invalid target CRS specification"):
         Geometry(pt, "invalid_crs")
+
+
+# Magic methods (dunder methods) tests --------------------------------------------
+def test_geometry_repr():
+    geometry = Geometry(Point(1.1, 2.2), CRS.from_epsg(4326))
+    assert repr(geometry) == "Geometry(geometry=<POINT (1.1 2.2)>, crs='EPSG:4326')"

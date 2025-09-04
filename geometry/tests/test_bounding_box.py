@@ -84,3 +84,9 @@ def test_bounding_box_from_geometry(geom, crs):
     assert bbox.maxy == sp.get_coordinates(geometry.geometry)[:, 1].max()
     assert bbox.crs == geometry.crs
     assert isinstance(bbox.crs, CRS)
+
+
+# Magic methods (dunder methods) tests --------------------------------------------
+def test_bounding_box_repr():
+    bbox = BoundingBox(0, 0, 1, 1, CRS.from_epsg(4326))
+    assert repr(bbox) == "BoundingBox(minx=0, miny=0, maxx=1, maxy=1, crs='EPSG:4326')"
