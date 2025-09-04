@@ -90,3 +90,13 @@ def test_bounding_box_from_geometry(geom, crs):
 def test_bounding_box_repr():
     bbox = BoundingBox(0, 0, 1, 1, CRS.from_epsg(4326))
     assert repr(bbox) == "BoundingBox(minx=0, miny=0, maxx=1, maxy=1, crs='EPSG:4326')"
+
+    # a more complex CRS
+    crs = CRS.from_proj4(
+        "+proj=omerc +lat_0=-36 +lonc=147 +alpha=-54 +k=1 +x_0=0 +y_0=0 +gamma=0 +ellps=WGS84 +towgs84=0,0,0,0,0,0,0"
+    )
+    bbox = BoundingBox(0, 0, 1, 1, crs)
+    assert (
+        repr(bbox)
+        == "BoundingBox(minx=0, miny=0, maxx=1, maxy=1, crs='+proj=omerc +lat_0=-36 +lonc=147 +alpha=-54 +k=1 +x_0=0 +y_0=0 +gamma=0 +ellps=WGS84 +towgs84=0,0,0,0,0,0,0 +type=crs')"
+    )
