@@ -29,14 +29,24 @@ from geometry.geometry import Geometry
 
 # Create geometries
 point = Geometry(sp.Point(5, 5), CRS.from_epsg(26910))
+#> Geometry(geometry=<POINT (5 5)>, crs='EPSG:26910')
 line = Geometry(sp.LineString([(0, 0), (2, 2), (10, 10)]), "epsg:4326")
+#> Geometry(geometry=<LINESTRING (0 0, 2 2, 10 10)>, crs='EPSG:4326')
 polygon = Geometry(sp.Polygon([(0, 0), (1, 0), (1, 1), (0, 1), (0, 0)]), crs=5070)
+#> Geometry(geometry=<POLYGON ((0 0, 1 0, 1 1, 0 1, 0 0))>, crs='EPSG:5070')
 
 # Shapely operations on the geometry
-buffered_shape = sp.buffer(point.geometry, 10)
+buffered_shape = sp.buffer(point.geometry, 1)
 point_buffered = Geometry(buffered_shape, point.crs)
+#> Geometry(geometry=<POLYGON ((6 5, 5.981 4.805, 5.924 4.617, 5.831 4.444, 5.707 4.293, 5.556 4....>, crs='EPSG:26910')
 
 # BoundingBox
 from geometry.bounding_box import BoundingBox
+bbox = BoundingBox(0, 0, 1, 1, 5070)
+#> BoundingBox(minx=0, miny=0, maxx=1, maxy=1, crs='EPSG:5070')
+
+# from a geometry
+polygon = Geometry(sp.Polygon([(0, 0), (2, 0), (1, 1), (0, 2), (0, 0)]), crs=5070)
 polygon_bbox = BoundingBox.from_geometry(polygon)
+#> BoundingBox(minx=0.0, miny=0.0, maxx=2.0, maxy=2.0, crs='EPSG:5070')
 ```
