@@ -87,6 +87,16 @@ def test_bounding_box_from_geometry(geom, crs):
 
 
 # Magic methods (dunder methods) tests --------------------------------------------
+
+
+## __iter__ tests
+def test_bounding_box_iter():
+    bbox = BoundingBox(0, 0, 1, 1, CRS.from_epsg(4326))
+    assert list(bbox) == [0, 0, 1, 1]
+    assert tuple(bbox) == (0, 0, 1, 1)
+
+
+## __repr__ tests
 def test_bounding_box_repr():
     bbox = BoundingBox(0, 0, 1, 1, CRS.from_epsg(4326))
     assert repr(bbox) == "BoundingBox(minx=0, miny=0, maxx=1, maxy=1, crs='EPSG:4326')"

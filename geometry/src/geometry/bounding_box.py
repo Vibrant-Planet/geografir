@@ -4,6 +4,7 @@ A bounding box of a geometry with CRS information.
 
 from __future__ import annotations
 from pyproj import CRS
+from typing import Iterator
 
 from geometry.crs import ensure_crs
 
@@ -54,6 +55,9 @@ class BoundingBox:
         return BoundingBox(minx, miny, maxx, maxy, crs=geometry.crs)
 
     # Magic methods (dunder methods) ----------------------------------------------
+    def __iter__(self) -> Iterator[float]:
+        return iter((self.minx, self.miny, self.maxx, self.maxy))
+
     def __repr__(self) -> str:
         crs_repr = self.crs.to_string()
         return f"BoundingBox(minx={self.minx}, miny={self.miny}, maxx={self.maxx}, maxy={self.maxy}, crs='{crs_repr}')"
