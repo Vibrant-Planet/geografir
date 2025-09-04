@@ -60,7 +60,7 @@ def test_geometry_init_geometry_types(geom, crs):
 
 def test_geometry_init_invalid_geometry():
     with pytest.raises(TypeError, match="geometry must be a Shapely BaseGeometry"):
-        Geometry("not a geometry", 4326)
+        Geometry("not a geometry", 4326)  # ty: ignore
 
 
 geometry_crs_test_data = [
