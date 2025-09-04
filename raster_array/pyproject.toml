@@ -1,0 +1,17 @@
+[project]
+name = "raster-array"
+version = "0.1.0"
+description = "A wrapper around Rasterio and Numpy to make working with raster data easier."
+readme = "README.md"
+authors = [
+    { name = "mitchellgritts", email = "mitchell@vibrantplanet.net" }
+]
+requires-python = ">=3.12"
+dependencies = [
+    "numpy>=2.3.2",
+    "rasterio>=1.4.3",
+]
+
+[build-system]
+requires = ["uv_build>=0.8.0,<0.9"]
+build-backend = "uv_build"
