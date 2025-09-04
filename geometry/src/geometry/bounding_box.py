@@ -1,5 +1,13 @@
-"""
-A bounding box of a geometry with CRS information.
+"""Bounding box implementation with coordinate reference system support.
+
+This module provides the BoundingBox class for representing rectangular extents
+of geometries with proper CRS (Coordinate Reference System) information. The
+BoundingBox class integrates with pyproj for CRS handling and can be created
+from geometry objects or coordinate values directly.
+
+Classes:
+    BoundingBox: A rectangular extent with CRS information that supports
+        iteration and conversion to coordinate lists.
 """
 
 from __future__ import annotations
@@ -102,8 +110,10 @@ class BoundingBox:
 
     # Magic methods (dunder methods) ----------------------------------------------
     def __iter__(self) -> Iterator[int | float]:
+        """Yield coordinates as [minx, miny, maxx, maxy]."""
         return iter((self.minx, self.miny, self.maxx, self.maxy))
 
     def __repr__(self) -> str:
+        """Return string representation of the BoundingBox."""
         crs_repr = self.crs.to_string()
         return f"BoundingBox(minx={self.minx}, miny={self.miny}, maxx={self.maxx}, maxy={self.maxy}, crs='{crs_repr}')"

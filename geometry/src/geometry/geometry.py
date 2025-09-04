@@ -46,5 +46,6 @@ class Geometry:
 
     # Magic methods (dunder methods) ----------------------------------------------
     def __repr__(self) -> str:
+        """Return string representation of the BoundingBox."""
         crs_repr = self.crs.to_string()
         return f"Geometry(geometry={self.geometry!r}, crs='{crs_repr}')"
