@@ -19,10 +19,10 @@ class BoundingBox:
     information for proper spatial context.
 
     Attributes:
-        minx (float): The minimum x-coordinate of the bounding box.
-        miny (float): The minimum y-coordinate of the bounding box.
-        maxx (float): The maximum x-coordinate of the bounding box.
-        maxy (float): The maximum y-coordinate of the bounding box.
+        minx (int | float): The minimum x-coordinate of the bounding box.
+        miny (int | float): The minimum y-coordinate of the bounding box.
+        maxx (int | float): The maximum x-coordinate of the bounding box.
+        maxy (int | float): The maximum y-coordinate of the bounding box.
         crs (CRS): The coordinate reference system of the bounding box.
 
     Examples:
@@ -45,22 +45,27 @@ class BoundingBox:
         Width: 0.1, Height: 0.1
     """
 
-    minx: float
-    miny: float
-    maxx: float
-    maxy: float
+    minx: int | float
+    miny: int | float
+    maxx: int | float
+    maxy: int | float
     crs: CRS | int | str
 
     def __init__(
-        self, minx: float, miny: float, maxx: float, maxy: float, crs: CRS | int | str
+        self,
+        minx: int | float,
+        miny: int | float,
+        maxx: int | float,
+        maxy: int | float,
+        crs: CRS | int | str,
     ):
         """Initialize a BoundingBox object.
 
         Args:
-            minx (float): The minimum x-coordinate of the bounding box.
-            miny (float): The minimum y-coordinate of the bounding box.
-            maxx (float): The maximum x-coordinate of the bounding box.
-            maxy (float): The maximum y-coordinate of the bounding box.
+            minx (int | float): The minimum x-coordinate of the bounding box.
+            miny (int | float): The minimum y-coordinate of the bounding box.
+            maxx (int | float): The maximum x-coordinate of the bounding box.
+            maxy (int | float): The maximum y-coordinate of the bounding box.
             crs (CRS | int | str): The coordinate reference system of the bounding
                 box. This will be handled by `pyproj.CRS.from_user_input`. Any value
                 accepted by `pyproj.CRS.from_user_input` is valid.
@@ -96,7 +101,7 @@ class BoundingBox:
         return BoundingBox(minx, miny, maxx, maxy, crs=geometry.crs)
 
     # Magic methods (dunder methods) ----------------------------------------------
-    def __iter__(self) -> Iterator[float]:
+    def __iter__(self) -> Iterator[int | float]:
         return iter((self.minx, self.miny, self.maxx, self.maxy))
 
     def __repr__(self) -> str:
