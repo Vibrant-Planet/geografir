@@ -1,8 +1,20 @@
 from geometry.bounding_box import BoundingBox
 
 import pytest
+import shapely as sp
 
 from pyproj import CRS
+from shapely.geometry import (
+    GeometryCollection,
+    LineString,
+    MultiLineString,
+    MultiPoint,
+    MultiPolygon,
+    Point,
+    Polygon,
+)
+
+from geometry.geometry import Geometry
 
 boundinb_box_init_params = [
     (0, 0, 1, 1, 4326),
@@ -24,4 +36,51 @@ def test_bounding_box_init(minx, miny, maxx, maxy, crs):
     assert bbox.miny == miny
     assert bbox.maxx == maxx
     assert bbox.maxy == maxy
+    assert isinstance(bbox.crs, CRS)
+
+
+# @staticmethod tests ---
+geometry_test_data = [
+    (Point(51, -1), 4326),
+    (LineString([(52, -1), (49, 2)]), 4326),
+    (Polygon(((0.0, 0.0), (0.0, 1.0), (1.0, 1.0), (1.0, 0.0), (0.0, 0.0))), 4326),
+    (MultiPoint([[0, 0], [1, 2]]), 4326),
+    (MultiLineString([[[0, 0], [1, 2]], [[4, 4], [5, 6]]]), 4326),
+    (
+        MultiPolygon(
+            [
+                (
+                    ((0.0, 0.0), (0.0, 1.0), (1.0, 1.0), (1.0, 0.0)),
+                    [((0.1, 0.1), (0.1, 0.2), (0.2, 0.2), (0.2, 0.1))],
+                )
+            ]
+        ),
+        4326,
+    ),
+    (GeometryCollection([Point(51, -1), LineString([(52, -1), (49, 2)])]), 4326),
+]
+
+
+@pytest.mark.parametrize(
+    "geom, crs",
+    geometry_test_data,
+    ids=[
+        "Point",
+        "LineString",
+        "Polygon",
+        "MultiPoint",
+        "MultiLineString",
+        "MultiPolygon",
+        "GeometryCollection",
+    ],
+)
+def test_bounding_box_from_geometry(geom, crs):
+    geometry = Geometry(geom, crs)
+    bbox = BoundingBox.from_geometry(geometry)
+
+    assert bbox.minx == sp.get_coordinates(geometry.geometry)[:, 0].min()
+    assert bbox.miny == sp.get_coordinates(geometry.geometry)[:, 1].min()
+    assert bbox.maxx == sp.get_coordinates(geometry.geometry)[:, 0].max()
+    assert bbox.maxy == sp.get_coordinates(geometry.geometry)[:, 1].max()
+    assert bbox.crs == geometry.crs
     assert isinstance(bbox.crs, CRS)
