@@ -12,7 +12,38 @@ from geometry.geometry import Geometry
 
 
 class BoundingBox:
-    """Represents the bounding box of a geometry with CRS information."""
+    """Represents the bounding box of a geometry with CRS information.
+
+    A bounding box defines the rectangular extent of a geometry using minimum
+    and maximum x and y coordinates, along with coordinate reference system (CRS)
+    information for proper spatial context.
+
+    Attributes:
+        minx (float): The minimum x-coordinate of the bounding box.
+        miny (float): The minimum y-coordinate of the bounding box.
+        maxx (float): The maximum x-coordinate of the bounding box.
+        maxy (float): The maximum y-coordinate of the bounding box.
+        crs (CRS): The coordinate reference system of the bounding box.
+
+    Examples:
+        Create a bounding box from coordinates:
+
+        >>> bbox = BoundingBox(-122.5, 37.7, -122.4, 37.8, "EPSG:4326")
+        >>> print(bbox)
+        BoundingBox(minx=-122.5, miny=37.7, maxx=-122.4, maxy=37.8, crs='EPSG:4326')
+
+        Convert to list for coordinate processing:
+
+        >>> coords = list(bbox)
+        >>> print(coords)
+        [-122.5, 37.7, -122.4, 37.8]
+
+        Unpack coordinates:
+
+        >>> minx, miny, maxx, maxy = bbox
+        >>> print(f"Width: {maxx - minx}, Height: {maxy - miny}")
+        Width: 0.1, Height: 0.1
+    """
 
     minx: float
     miny: float
@@ -48,7 +79,17 @@ class BoundingBox:
             geometry (Geometry): The geometry to create the bounding box from.
 
         Returns:
-            BoundingBox: The bounding box of the geometry.
+            BoundingBox: The bounding box of the geometry with the same CRS.
+
+        Examples:
+            Create bounding box from a point geometry:
+
+            >>> from geometry.geometry import Geometry
+            >>> from shapely.geometry import Point
+            >>> geom = Geometry(Point(-122.4, 37.8), crs="EPSG:4326")
+            >>> bbox = BoundingBox.from_geometry(geom)
+            >>> print(list(bbox))
+            [-122.4, 37.8, -122.4, 37.8]
         """
         minx, miny, maxx, maxy = geometry.geometry.bounds
 
