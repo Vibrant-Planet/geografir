@@ -60,7 +60,7 @@ def test_geometry_init_geometry_types(geom, crs):
 
 def test_geometry_init_invalid_geometry():
     with pytest.raises(TypeError, match="geometry must be a Shapely BaseGeometry"):
-        Geometry("not a geometry", 4326)
+        Geometry("not a geometry", 4326)  # ty: ignore
 
 
 geometry_crs_test_data = [
@@ -87,3 +87,19 @@ def test_init_invalid_crs():
     pt = Point(1, 2)
     with pytest.raises(CRSError, match="Invalid target CRS specification"):
         Geometry(pt, "invalid_crs")
+
+
+# Magic methods (dunder methods) tests --------------------------------------------
+def test_geometry_repr():
+    geometry = Geometry(Point(1.1, 2.2), CRS.from_epsg(4326))
+    assert repr(geometry) == "Geometry(geometry=<POINT (1.1 2.2)>, crs='EPSG:4326')"
+
+    # a more complex CRS
+    crs = CRS.from_proj4(
+        "+proj=omerc +lat_0=-36 +lonc=147 +alpha=-54 +k=1 +x_0=0 +y_0=0 +gamma=0 +ellps=WGS84 +towgs84=0,0,0,0,0,0,0"
+    )
+    geometry = Geometry(Point(1.1, 2.2), crs)
+    assert (
+        repr(geometry)
+        == "Geometry(geometry=<POINT (1.1 2.2)>, crs='+proj=omerc +lat_0=-36 +lonc=147 +alpha=-54 +k=1 +x_0=0 +y_0=0 +gamma=0 +ellps=WGS84 +towgs84=0,0,0,0,0,0,0 +type=crs')"
+    )
