@@ -25,7 +25,7 @@ uv add https://github.com/Vibrant-Planet/geografir.git#subdirectory=geometry
 import shapely as sp
 from pyproj import CRS
 
-from geometry.geometry import Geometry
+from geometry import Geometry
 
 # Create geometries
 point = Geometry(sp.Point(5, 5), CRS.from_epsg(26910))
@@ -41,7 +41,7 @@ point_buffered = Geometry(buffered_shape, point.crs)
 #> Geometry(geometry=<POLYGON ((6 5, 5.981 4.805, 5.924 4.617, 5.831 4.444, 5.707 4.293, 5.556 4....>, crs='EPSG:26910')
 
 # BoundingBox
-from geometry.bounding_box import BoundingBox
+from geometry import BoundingBox
 bbox = BoundingBox(0, 0, 1, 1, 5070)
 #> BoundingBox(minx=0, miny=0, maxx=1, maxy=1, crs='EPSG:5070')
 
