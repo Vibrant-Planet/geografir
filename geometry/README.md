@@ -8,7 +8,7 @@ This package provides two classe for representing geospatial shapes: `Geometry` 
 ## Key Design Decisions
 
 1. Minimal Wrappers: The `Geometry` class is a simple wrapper around `shapely` geometries. Users should work directly with the `Geometry.geometry` object with `shapely`'s methods and reconstruct the `Geometry` as needed.
-2. Explicit CRS: Each class have an explicit, required CRS using `pyrpoj.CRS` objects.
+2. Explicit CRS: Each class has an explicit, required CRS using `pyrpoj.CRS` objects.
 3. Immutability: Operations return a new object rather than modifying existing objects.
 
 ## Installation
