@@ -4,7 +4,7 @@ import pytest
 import shapely as sp
 
 from pyproj import CRS
-from shapely.geometry import (
+from shapely import (
     GeometryCollection,
     LineString,
     MultiLineString,
