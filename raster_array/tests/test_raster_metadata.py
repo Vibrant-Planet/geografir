@@ -4,6 +4,7 @@ Tests for the RasterMetadata class.
 
 import numpy as np
 from rasterio import CRS
+from rasterio.enums import Compression
 from rasterio.transform import from_bounds, Affine
 
 from raster_array.raster_metadata import RasterMetadata, NO_RESOLUTION_SPECIFIED
@@ -31,14 +32,14 @@ def test_raster_metadata_init_basic():
         resolution=resolution,
     )
 
-    assert metadata.crs == crs
     assert metadata.count == count
-    assert metadata.width == width
-    assert metadata.height == height
+    assert metadata.crs == crs
     assert metadata.dtype == dtype
+    assert metadata.height == height
     assert metadata.nodata == nodata
-    assert metadata.transform == transform
     assert metadata.resolution == resolution
+    assert metadata.transform == transform
+    assert metadata.width == width
 
 
 def test_raster_metadata_init_default_resolution():
@@ -151,6 +152,28 @@ def test_raster_metadata_init_various_transforms():
         transform=transform_manual,
     )
     assert metadata_manual.transform == transform_manual
+
+
+# @property tests -----------------------------------------------------------------
+def test_raster_metadata_profile():
+    Affine(1.0, 0.0, 0.0, 0.0, -1.0, 10.0)
+    metadata = RasterMetadata(
+        crs=CRS.from_epsg(4326),
+        count=1,
+        width=10,
+        height=10,
+        dtype=np.float32,
+        nodata=-9999,
+        transform=Affine(1.0, 0.0, 0.0, 0.0, -1.0, 10.0),
+    )
+    assert metadata.profile["driver"] == "GTiff"
+    assert metadata.profile["bigtiff"] == "YES"
+    assert metadata.profile["blockxsize"] == 512
+    assert metadata.profile["blockysize"] == 512
+    assert metadata.profile["interleave"] == "pixel"
+    assert metadata.profile["compress"] == Compression.deflate
+    assert metadata.profile["zlevel"] == 9
+    assert metadata.profile["tiled"]
 
 
 # Magic methods (dunder methods) tests --------------------------------------------
