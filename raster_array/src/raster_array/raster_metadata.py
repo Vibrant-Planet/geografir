@@ -11,10 +11,11 @@ from __future__ import annotations
 from operator import itemgetter
 
 import rasterio
-from rasterio.profiles import Profile
+from geometry.crs import ensure_crs
 from numpy.typing import DTypeLike
 from pyproj import CRS
-from geometry.crs import ensure_crs
+from rasterio.profiles import Profile
+from rasterio.transform import array_bounds
 
 from raster_array.profiles import apply_geotiff_profile
 
@@ -110,6 +111,11 @@ class RasterMetadata:
         self.resolution = resolution
 
     @property
+    def bounds(self) -> tuple[float, float, float, float]:
+        """Return the bounds of the raster."""
+        return array_bounds(self.width, self.height, self.transform)
+
+    @property
     def profile(self) -> Profile:
         """Return a raster profile."""
         profile_fields = [
@@ -124,6 +130,11 @@ class RasterMetadata:
         profile_values = itemgetter(*profile_fields)(self.__dict__)
         profile = Profile(dict(zip(profile_fields, profile_values)))
         return apply_geotiff_profile(profile)
+
+    @property
+    def shape(self) -> tuple[int, int, int]:
+        """Return the shape of the raster."""
+        return (self.count, self.height, self.width)
 
     # Magic methods (dunder methods) ----------------------------------------------
     def __repr__(self):
