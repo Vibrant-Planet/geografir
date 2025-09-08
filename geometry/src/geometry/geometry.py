@@ -34,8 +34,8 @@ class Geometry:
         Create geometry from different Shapely objects:
 
         >>> import shapely as sp
-        >>> from shapely.geometry import Point, LineString, Polygon
-        >>> from geometry.geometry import Geometry
+        >>> from shapely import Point, LineString, Polygon
+        >>> from geometry import Geometry
 
         Point geometry:
         >>> point = Point(-73.9857, 40.7484)

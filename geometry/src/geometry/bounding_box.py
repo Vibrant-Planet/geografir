@@ -97,7 +97,7 @@ class BoundingBox:
         Examples:
             Create bounding box from a point geometry:
 
-            >>> from geometry.geometry import Geometry
+            >>> from geometry import Geometry
             >>> from shapely.geometry import Point
             >>> geom = Geometry(Point(-122.4, 37.8), crs="EPSG:4326")
             >>> bbox = BoundingBox.from_geometry(geom)
