@@ -55,10 +55,9 @@ def apply_cog_profile(profile: Profile) -> Profile:
     Returns:
         Profile: raster profile with the default COG profile applied.
     """
-    new_profile = profile.copy()
     # these values aren't allowed using the COG driver
     invalid_cog_keys = ["blockxsize", "blockysize", "tiled", "interleave"]
-    ok_cog_profile = {k: v for k, v in new_profile.items() if k not in invalid_cog_keys}
+    ok_cog_profile = {k: v for k, v in profile.items() if k not in invalid_cog_keys}
 
     return Profile({**ok_cog_profile, **COG_PROFILE})
 
