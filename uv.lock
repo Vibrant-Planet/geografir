@@ -669,13 +669,17 @@ name = "raster-array"
 version = "0.1.0"
 source = { editable = "raster_array" }
 dependencies = [
+    { name = "geometry" },
     { name = "numpy" },
+    { name = "pyproj" },
     { name = "rasterio" },
 ]
 
 [package.metadata]
 requires-dist = [
+    { name = "geometry", editable = "geometry" },
     { name = "numpy", specifier = ">=2.3.2" },
+    { name = "pyproj", specifier = ">=3.7.2" },
     { name = "rasterio", specifier = ">=1.4.3" },
 ]
 
