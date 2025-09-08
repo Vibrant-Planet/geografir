@@ -4,7 +4,7 @@ import pytest
 
 from pyproj import CRS
 from pyproj.exceptions import CRSError
-from shapely.geometry import (
+from shapely import (
     GeometryCollection,
     LineString,
     MultiLineString,
