@@ -81,6 +81,20 @@ class RasterMetadata:
         transform: rasterio.Affine,
         resolution: int | float = NO_RESOLUTION_SPECIFIED,
     ):
+        """Initialize a RasterMetadata object.
+
+        Attributes:
+            crs (CRS): Coordinate Reference System of the raster data.
+            count (int): Number of bands in the raster dataset.
+            width (int): Width of the raster in pixels (number of columns).
+            height (int): Height of the raster in pixels (number of rows).
+            dtype (DTypeLike): NumPy data type of the raster values.
+            nodata (int | float): Value used to represent missing or invalid data.
+            transform (rasterio.Affine): Affine transformation matrix mapping
+                pixel coordinates to geographic coordinates.
+            resolution (int | float): Spatial resolution of the raster. Defaults
+                to NO_RESOLUTION_SPECIFIED if not provided.
+        """
         self.crs = ensure_crs(crs)
         self.count = count
         self.width = width
@@ -92,6 +106,7 @@ class RasterMetadata:
 
     # Magic methods (dunder methods) ----------------------------------------------
     def __repr__(self):
+        """Return string representation of the RasterMetadata."""
         crs_repr = self.crs.to_string()
         transform_repr = self.transform.__repr__().replace("\n      ", "")
         return f"RasterMetadata(crs={crs_repr}, count={self.count}, width={self.width}, height={self.height}, dtype={self.dtype!r}, nodata={self.nodata}, transform={transform_repr}, resolution={self.resolution})"
