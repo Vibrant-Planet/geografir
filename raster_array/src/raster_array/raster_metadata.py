@@ -136,6 +136,29 @@ class RasterMetadata:
         """Return the shape of the raster."""
         return (self.count, self.height, self.width)
 
+    # methods ---------------------------------------------------------------------
+    def copy(self, **kwargs) -> RasterMetadata:
+        """Create a copy of RasterMetadata.
+
+        This is helpful when creating a copy RasterArray with some modifications to
+        the metadata without needing to specify every attribute. A lot of times we
+        need to change the dtype and nodata value but everything else stays the same.
+
+        Args:
+            kwargs: any of the attributes of `RasterMetadata`. For example, `crs`, `count`,
+                `transform`.
+
+        Returns:
+            RasterMetadata: a copy of the current values of `RasterMetadata` merged with
+                any values provided from kwargs. Any values in kwargs that are not attributes
+                of `RasterMetadata` will be ignored.
+        """
+        current_items = self.__dict__
+        allowed_keys_in_kwargs = set(current_items.keys()) & set(kwargs.keys())
+        new_items = {key: kwargs[key] for key in allowed_keys_in_kwargs}
+        merged_items = {**current_items, **new_items}
+        return RasterMetadata(**merged_items)  # ty: ignore
+
     # @staticmethods --------------------------------------------------------------
     @staticmethod
     def from_profile(profile: Profile) -> RasterMetadata:
