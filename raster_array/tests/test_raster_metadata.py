@@ -234,6 +234,32 @@ def test_raster_metadata_shape():
     assert metadata.shape == (1, 10, 10)
 
 
+# @staticmethods tests -----------------------------------------------------------------
+def test_raster_metadata_from_profile():
+    profile = rio.profiles.Profile(
+        {
+            "driver": "GTiff",
+            "interleave": "pixel",
+            "tiled": True,
+            "blockxsize": 512,
+            "blockysize": 512,
+            "nodata": 0,
+            "compress": Compression.deflate,
+            "crs": rio.CRS.from_epsg(3310),
+            "width": 1859,
+            "height": 1566,
+            "transform": rio.transform.Affine(5.0, 0.0, -47045.0, 0.0, -5.0, 142190.0),
+            "count": 2,
+            "dtype": np.uint8,
+            "zlevel": 9,
+            "bigtiff": "YES",
+        }
+    )
+    metadata = RasterMetadata.from_profile(profile)
+
+    assert profile == metadata.profile
+
+
 # Magic methods (dunder methods) tests --------------------------------------------
 def test_raster_metadata_repr():
     metadata = RasterMetadata(

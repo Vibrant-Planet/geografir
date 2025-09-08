@@ -136,6 +136,21 @@ class RasterMetadata:
         """Return the shape of the raster."""
         return (self.count, self.height, self.width)
 
+    # @staticmethods --------------------------------------------------------------
+    @staticmethod
+    def from_profile(profile: Profile) -> RasterMetadata:
+        profile_fields = [
+            "crs",
+            "count",
+            "dtype",
+            "nodata",
+            "width",
+            "height",
+            "transform",
+        ]
+        profile_values = itemgetter(*profile_fields)(profile)
+        return RasterMetadata(**dict(zip(profile_fields, profile_values)))  # ty: ignore
+
     # Magic methods (dunder methods) ----------------------------------------------
     def __repr__(self):
         """Return string representation of the RasterMetadata."""
