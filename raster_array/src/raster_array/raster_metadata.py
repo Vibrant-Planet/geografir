@@ -8,10 +8,15 @@ to work seamlessly with rasterio profiles.
 
 from __future__ import annotations
 
+from operator import itemgetter
+
 import rasterio
+from rasterio.profiles import Profile
 from numpy.typing import DTypeLike
 from pyproj import CRS
 from geometry.crs import ensure_crs
+
+from raster_array.profiles import apply_geotiff_profile
 
 RASTER_BLOCK_SIZE = 512
 RASTER_COMPRESS_Z_LEVEL = 9
@@ -103,6 +108,22 @@ class RasterMetadata:
         self.nodata = nodata
         self.transform = transform
         self.resolution = resolution
+
+    @property
+    def profile(self) -> Profile:
+        """Return a raster profile."""
+        profile_fields = [
+            "crs",
+            "count",
+            "dtype",
+            "nodata",
+            "width",
+            "height",
+            "transform",
+        ]
+        profile_values = itemgetter(*profile_fields)(self.__dict__)
+        profile = Profile(dict(zip(profile_fields, profile_values)))
+        return apply_geotiff_profile(profile)
 
     # Magic methods (dunder methods) ----------------------------------------------
     def __repr__(self):
