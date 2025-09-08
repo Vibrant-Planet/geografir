@@ -8,7 +8,9 @@ authors = [
 ]
 requires-python = ">=3.12"
 dependencies = [
+    "geometry",
     "numpy>=2.3.2",
+    "pyproj>=3.7.2",
     "rasterio>=1.4.3",
 ]
 
