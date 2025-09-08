@@ -112,12 +112,20 @@ class RasterMetadata:
 
     @property
     def bounds(self) -> tuple[float, float, float, float]:
-        """Return the bounds of the raster."""
+        """Return the bounds of the raster.
+
+        Returns:
+            tuple[float, float, float, float]: Bounding box as (left, bottom, right, top).
+        """
         return array_bounds(self.width, self.height, self.transform)
 
     @property
     def profile(self) -> Profile:
-        """Return a raster profile."""
+        """Return a raster profile.
+
+        Returns:
+            Profile: Rasterio profile with GeoTIFF settings applied.
+        """
         profile_fields = [
             "crs",
             "count",
@@ -133,25 +141,35 @@ class RasterMetadata:
 
     @property
     def shape(self) -> tuple[int, int, int]:
-        """Return the shape of the raster."""
+        """Return the shape of the raster.
+
+        Returns:
+            tuple[int, int, int]: Shape as (count, height, width).
+        """
         return (self.count, self.height, self.width)
 
     # methods ---------------------------------------------------------------------
     def copy(self, **kwargs) -> RasterMetadata:
-        """Create a copy of RasterMetadata.
+        """Create a copy of this RasterMetadata with optional modifications.
 
-        This is helpful when creating a copy RasterArray with some modifications to
-        the metadata without needing to specify every attribute. A lot of times we
-        need to change the dtype and nodata value but everything else stays the same.
+        This method creates a new RasterMetadata object with the same values as the
+        current one, but allows you to override specific attributes. This is useful
+        when you need to create a modified version without specifying all parameters.
 
         Args:
-            kwargs: any of the attributes of `RasterMetadata`. For example, `crs`, `count`,
-                `transform`.
+            **kwargs: Keyword arguments for any RasterMetadata attributes to override.
+                Valid keys include: crs, count, width, height, dtype, nodata,
+                transform, and resolution. Invalid keys are ignored.
 
         Returns:
-            RasterMetadata: a copy of the current values of `RasterMetadata` merged with
-                any values provided from kwargs. Any values in kwargs that are not attributes
-                of `RasterMetadata` will be ignored.
+            RasterMetadata: A new RasterMetadata object with updated values.
+
+        Examples:
+            >>> # Create a copy with different dtype and nodata
+            >>> new_metadata = metadata.copy(dtype=np.int16, nodata=-32767)
+            >>>
+            >>> # Create a copy with different CRS
+            >>> reprojected = metadata.copy(crs=CRS.from_epsg(3857))
         """
         current_items = self.__dict__
         allowed_keys_in_kwargs = set(current_items.keys()) & set(kwargs.keys())
@@ -162,6 +180,14 @@ class RasterMetadata:
     # @staticmethods --------------------------------------------------------------
     @staticmethod
     def from_profile(profile: Profile) -> RasterMetadata:
+        """Create a RasterMetadata object from a rasterio profile.
+
+        Args:
+            profile (Profile): Rasterio profile containing raster metadata.
+
+        Returns:
+            RasterMetadata: New RasterMetadata object with values from the profile.
+        """
         profile_fields = [
             "crs",
             "count",
