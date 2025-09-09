@@ -66,7 +66,7 @@ class RasterArray:
         print(f"src dtype: {src_metadata.dtype}, target dtype: {dtype}")
 
         if target_nodata or target_dtype:
-            check_valid_nodata(nodata, dtype)
+            nodata = ensure_valid_nodata(nodata, dtype)
 
         transform = src_metadata.transform
         src_read_kwargs: dict[str, Any] = {
@@ -88,58 +88,20 @@ class RasterArray:
 
 
 # private helpers --------------------------------------------------------------
-def check_valid_nodata(nodata: int | float, dtype: DTypeLike) -> None:
-    """Validate nodata value to ensure is logical with dtype.
-
-    The nodata value is always represented by a float in a rasterio.profiles.Profile even if dtype is an integer.
-    So if nodata is a float and dtype is an integer, but `is_integer()` called on the ndoata value is True,
-    the nodata and dtype combination is still valid.
-
-    Args:
-        nodata (int | float): The nodata value for which to check if it is valid with dtype.
-        dtype (DTypeLike): The data type for which to check if it is valid with the provided nodata value.
-
-    Raises:
-         ValueError: if the nodata value is not valid with the provided dtype of nodata is None
-    """
-    if nodata is None:
-        msg = "nodata cannot be None."
-        raise ValueError(msg)
-
-    dtype_kind = np.dtype(dtype).kind
-    if dtype_kind in ["i", "u"]:
-        # if value is a float but can be converted to an integer, do so here
-        if np.issubdtype(type(nodata), np.floating) and nodata.is_integer():  # type: ignore
-            nodata = int(nodata)
-        if not np.issubdtype(type(nodata), np.integer):
-            msg = f"dtype is {np.dtype(dtype).name} and nodata is {str(nodata)} with dtype {np.dtype(type(nodata)).name}."
-            raise ValueError(msg)
-        if not np.iinfo(dtype).min <= nodata <= np.iinfo(dtype).max:
-            msg = f"nodata value of {str(nodata)} is not between the min and max of dtype {np.dtype(dtype).name}"
-            raise ValueError(msg)
-    elif dtype_kind == "f":
-        if not np.isnan(nodata):
-            msg = "nodata value should be np.nan for a float dtype."
-            raise ValueError(msg)
-    else:
-        msg = f"dtype must be int and float dtypes, not '{np.dtype(dtype).name}'."
-        raise ValueError(msg)
-
-
 def ensure_valid_nodata(nodata: int | float | None, dtype: DTypeLike) -> int | float:
     if nodata is None:
         msg = "nodata cannot be None."
         raise ValueError(msg)
 
     dtype_info = (
-        np.iinfo(dtype) if np.issubdtype(dtype, np.integer) else np.finfo(dtype)
-    )  # type: ignore
+        np.iinfo(dtype) if np.issubdtype(dtype, np.integer) else np.finfo(dtype)  # type: ignore
+    )
     nodata_src_dtype = np.dtype(type(nodata))
     nodata_info = (
-        np.iinfo(nodata_src_dtype)
+        np.iinfo(nodata_src_dtype)  # type: ignore
         if np.issubdtype(nodata_src_dtype, np.integer)
-        else np.finfo(nodata_src_dtype)
-    )  # type: ignore
+        else np.finfo(nodata_src_dtype)  # type: ignore
+    )
 
     is_dtype_integer = np.issubdtype(dtype_info.dtype, np.integer)
     is_nodata_integer = np.issubdtype(nodata_info.dtype, np.integer)
