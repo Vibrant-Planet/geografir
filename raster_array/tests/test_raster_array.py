@@ -6,7 +6,7 @@ import pytest
 import rasterio as rio
 
 
-from raster_array.exceptions import RasterArrayShapeError
+from raster_array.exceptions import RasterArrayShapeError, RasterArrayDtypeError
 from raster_array.raster_metadata import RasterMetadata
 from raster_array.raster_array import RasterArray
 
@@ -66,3 +66,12 @@ def test_raster_array_shape_error(raster_4_x_4_multiband):
         RasterArrayShapeError, match="Array must have 3 dimensions, has 2"
     ):
         RasterArray(array[0], metadata)
+
+
+def test_raster_array_dtype_error(raster_4_x_4_multiband):
+    array = raster_4_x_4_multiband.read()
+    metadata = RasterMetadata.from_profile(raster_4_x_4_multiband.profile)
+    metadata = metadata.copy(dtype="int64")
+
+    with pytest.raises(RasterArrayDtypeError, match="does not match metadata dtype"):
+        RasterArray(array, metadata)

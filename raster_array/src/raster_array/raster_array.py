@@ -1,6 +1,8 @@
+import numpy as np
+
 from numpy.typing import NDArray
 
-from raster_array.exceptions import RasterArrayShapeError
+from raster_array.exceptions import RasterArrayShapeError, RasterArrayDtypeError
 from raster_array.raster_metadata import RasterMetadata
 
 
@@ -21,6 +23,7 @@ class RasterArray:
     def __init__(self, array: NDArray, metadata: RasterMetadata):
         _validate_3d_array(array)
         _validate_array_shape_matches_metadata_shape(array, metadata)
+        _validate_dtype_matches_metadata_dtype(array, metadata)
 
         self.array = array
         self.metadata = metadata
@@ -45,3 +48,11 @@ def _validate_array_shape_matches_metadata_shape(
             f"Array shape {array.shape} does not match metadata shape {metadata.shape}"
         )
         raise RasterArrayShapeError(msg)
+
+
+def _validate_dtype_matches_metadata_dtype(array: NDArray, metadata: RasterMetadata):
+    if np.dtype(array.dtype).name != np.dtype(metadata.dtype).name:
+        msg = (
+            f"Array dtype {array.dtype} does not match metadata dtype {metadata.dtype}"
+        )
+        raise RasterArrayDtypeError(msg)
