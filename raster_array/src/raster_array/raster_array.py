@@ -59,29 +59,42 @@ class RasterArray:
         """Core logic for RasterArray.from_raster."""
         src_metadata = RasterMetadata.from_profile(src.profile)
 
-        nodata = target_nodata if target_nodata else src_metadata.nodata
-        dtype = target_dtype if target_dtype else src_metadata.dtype
-
-        print(f"src nodata: {src_metadata.nodata}, target nodata: {nodata}")
-        print(f"src dtype: {src_metadata.dtype}, target dtype: {dtype}")
+        out_nodata = target_nodata if target_nodata else src_metadata.nodata
+        out_dtype = target_dtype if target_dtype else src_metadata.dtype
 
         if target_nodata or target_dtype:
-            nodata = ensure_valid_nodata(nodata, dtype)
+            out_nodata = ensure_valid_nodata(out_nodata, out_dtype)
 
         transform = src_metadata.transform
         src_read_kwargs: dict[str, Any] = {
             "masked": False,
             "out_shape": src_metadata.shape,
-            "out_dtype": dtype,
+            "out_dtype": out_dtype,
         }
 
         data = src.read(**src_read_kwargs)
+
+        # coerce nodata values to out_nodata
+        replacement_mask = (
+            np.isnan(data)
+            if np.isnan(src_metadata.nodata)
+            else data == src_metadata.nodata
+        )
+        data[replacement_mask] = out_nodata
+
         metadata = src_metadata.copy(
             width=src_read_kwargs["out_shape"][-1],
             height=src_read_kwargs["out_shape"][-2],
             transform=transform,
-            nodata=nodata,
-            dtype=dtype,
+            nodata=out_nodata,
+            dtype=out_dtype,
+        )
+
+        print(
+            f"src nodata: {src_metadata.nodata}, target nodata: {target_nodata}, out nodata: {out_nodata}"
+        )
+        print(
+            f"src dtype: {src_metadata.dtype}, target dtype: {target_dtype}, out dtype: {out_dtype}"
         )
 
         return RasterArray(data, metadata)
@@ -89,6 +102,42 @@ class RasterArray:
 
 # private helpers --------------------------------------------------------------
 def ensure_valid_nodata(nodata: int | float | None, dtype: DTypeLike) -> int | float:
+    """Validate and coerce a nodata value to be compatible with a given numpy dtype.
+
+    This function ensures that the nodata value can be properly used with arrays
+    of the specified dtype by performing validation and type coercion when necessary.
+
+    Args:
+        nodata (int | float | None): The nodata value to validate. Can be an integer, float, or None.
+                For integer dtypes, must be a whole number or coerceable to one.
+                For float dtypes, can include np.nan.
+        dtype (DTypeLike): The target numpy dtype that the nodata value should be compatible with.
+                Can be any numpy dtype or dtype-like object.
+
+    Returns:
+        The validated and potentially coerced nodata value as either an int or float:
+        - If dtype is integer and nodata is a whole number float, returns int
+        - If dtype is float and nodata is an integer, returns float
+        - Otherwise returns the original nodata value with appropriate type
+
+    Raises:
+        ValueError: If nodata is None
+        ValueError: If nodata is np.nan and dtype is an integer type
+        ValueError: If nodata is a non-whole number float and dtype is an integer type
+        ValueError: If nodata is outside the representable range of the dtype
+
+    Examples:
+        >>> ensure_valid_nodata(0, np.int16)
+        0
+        >>> ensure_valid_nodata(-99.0, np.int16)
+        -99
+        >>> ensure_valid_nodata(-99, np.float32)
+        -99.0
+        >>> ensure_valid_nodata(np.nan, np.float32)
+        nan
+        >>> ensure_valid_nodata(9999, np.uint8)
+        ValueError: nodata value of 9999 is not between the min and max of dtype uint8
+    """
     if nodata is None:
         msg = "nodata cannot be None."
         raise ValueError(msg)

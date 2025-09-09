@@ -1,6 +1,7 @@
 # type: ignore
 """Tests for the RasterArray class."""
 
+from contextlib import contextmanager
 import numpy as np
 import pytest
 import rasterio as rio
@@ -11,28 +12,38 @@ from raster_array.raster_metadata import RasterMetadata
 from raster_array.raster_array import RasterArray, ensure_valid_nodata
 
 
-@pytest.fixture(scope="session")
-def raster_4_x_4_multiband():
-    shape = (2, 4, 4)
-    count, height, width = shape
-    n = count * height * width
-    array = np.arange(0, n).reshape(shape)
+@contextmanager
+def generate_raster(data, nodata, dtype):
+    data = data if isinstance(data, np.ndarray) else np.array(data, dtype=dtype)
+    count, height, width = data.shape
+    bounds = (0, 0, width, height)
 
     metadata = RasterMetadata(
         crs=rio.CRS.from_epsg(4326),
         count=count,
         width=width,
         height=height,
-        dtype=np.int32,
-        nodata=-9999,
-        transform=rio.transform.Affine(1.0, 0.0, 0.0, 0.0, -1.0, 4.0),
+        dtype=dtype,
+        nodata=nodata,
+        transform=rio.transform.from_bounds(*bounds, width, height),
+        resolution=1,
     )
 
     with rio.io.MemoryFile() as memfile:
         with memfile.open(**metadata.profile) as dataset:
-            dataset.write(array)
+            dataset.write(data)
         with memfile.open() as dataset:
             yield dataset
+
+
+@pytest.fixture(scope="session")
+def raster_4_x_4_multiband():
+    shape = (2, 4, 4)
+    count, height, width = shape
+    n = count * height * width
+    array = np.arange(0, n, dtype=np.int32).reshape(shape)
+    with generate_raster(array, -9999, np.int32) as dataset:
+        yield dataset
 
 
 # test initialization of RasterArray -------------------------------------------
@@ -78,31 +89,48 @@ def test_raster_array_dtype_error(raster_4_x_4_multiband):
 
 
 # test RasterArray.from_raster -------------------------------------------------
-def test_from_raster_simple(raster_4_x_4_multiband):
-    raster = RasterArray.from_raster(raster_4_x_4_multiband)
-    expected_array = raster_4_x_4_multiband.read()
+type_and_nodata_coercion_data = [
+    # (data, src_nodata, target_nodata, src_dtype, target_dtype)
+    ([[[0.0, 1.0], [1.0, 0.0]]], 0, -99, np.float32, np.int16),
+    ([[[0.0, 1.0], [1.0, 0.0]]], 0, 0, np.float32, np.int16),
+    ([[[0.0, 1.0], [1.0, 0.0]]], 0, 0, np.int16, np.float32),
+    ([[[0.0, 1.0], [1.0, 0.0]]], 0, np.nan, np.float32, np.float32),
+    ([[[np.nan, 1.0], [1.0, np.nan]]], np.nan, -99, np.float32, np.float32),
+]
 
-    assert isinstance(raster, RasterArray)
-    assert isinstance(raster.metadata, RasterMetadata)
-    assert np.array_equal(raster.array, expected_array)
 
+@pytest.mark.parametrize(
+    "data, src_nodata, target_nodata, src_dtype, target_dtype",
+    type_and_nodata_coercion_data,
+)
+def test_from_raster_simple_target_nodata_or_dtype_coercion(
+    data, src_nodata, target_nodata, src_dtype, target_dtype
+):
+    array = np.array(data, dtype=src_dtype)
+    expected_array = array.astype(target_dtype, copy=True)
+    replacement_mask = (
+        np.isnan(expected_array)
+        if np.isnan(src_nodata)
+        else expected_array == src_nodata
+    )
+    expected_array[replacement_mask] = target_nodata
 
-# def test_from_raster_simple_target_dtype(raster_4_x_4_multiband):
-#     raster = RasterArray.from_raster(raster_4_x_4_multiband, target_dtype=np.float32)
+    with generate_raster(data, src_nodata, src_dtype) as src:
+        raster = RasterArray.from_raster(
+            src, target_nodata=target_nodata, target_dtype=target_dtype
+        )
 
-#     print(raster.array.dtype)
-#     print(raster.metadata.dtype)
-
-#     assert isinstance(raster, RasterArray)
-#     assert isinstance(raster.metadata, RasterMetadata)
-#     assert 0
+        assert np.array_equal(raster.array, expected_array, equal_nan=True)
+        assert raster.array.dtype == target_dtype
+        assert raster.metadata.dtype == target_dtype
+        if np.isnan(target_nodata):
+            assert np.isnan(target_nodata)
+        else:
+            assert raster.metadata.nodata == target_nodata
 
 
 # test helpers -----------------------------------------------------------------
 def test_ensure_valid_nodata():
-    # this is an error case
-    # print(ensure_valid_nodata(np.nan, np.int16))
-
     # coerce values if necessary
     assert ensure_valid_nodata(0, np.int16) == 0
     assert ensure_valid_nodata(-99.0, np.int16) == -99
