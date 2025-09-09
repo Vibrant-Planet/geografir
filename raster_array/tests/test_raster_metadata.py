@@ -234,6 +234,71 @@ def test_raster_metadata_shape():
     assert metadata.shape == (1, 10, 10)
 
 
+# @staticmethods tests -----------------------------------------------------------------
+def test_raster_metadata_from_profile():
+    profile = rio.profiles.Profile(
+        {
+            "driver": "GTiff",
+            "interleave": "pixel",
+            "tiled": True,
+            "blockxsize": 512,
+            "blockysize": 512,
+            "nodata": 0,
+            "compress": Compression.deflate,
+            "crs": rio.CRS.from_epsg(3310),
+            "width": 1859,
+            "height": 1566,
+            "transform": rio.transform.Affine(5.0, 0.0, -47045.0, 0.0, -5.0, 142190.0),
+            "count": 2,
+            "dtype": np.uint8,
+            "zlevel": 9,
+            "bigtiff": "YES",
+        }
+    )
+    metadata = RasterMetadata.from_profile(profile)
+
+    assert profile == metadata.profile
+
+
+# Methods tests -----------------------------------------------------------------
+def test_raster_metadata_copy():
+    metadata = RasterMetadata(
+        crs=rio.CRS.from_epsg(5070),
+        count=3,
+        width=3,
+        height=3,
+        dtype="float32",
+        nodata=0.0,
+        transform=rio.transform.Affine(5.0, 0.0, 0.0, 0.0, -5.0, 5.0),
+        resolution=5,
+    )
+    new_metadata = metadata.copy(nodata=-9999, count=4, band_tags={})
+
+    assert new_metadata.nodata == -9999
+    assert new_metadata.count == 4
+
+    all_parameters_changed_metadata = metadata.copy(
+        crs=rio.CRS.from_epsg(5070),
+        count=2,
+        width=5,
+        height=9,
+        dtype="int32",
+        nodata=99,
+        transform=rio.transform.Affine(15.0, 10.0, -10.0, 0.0, -15.0, 80.0),
+        resolution=10,
+    )
+
+    assert all_parameters_changed_metadata.crs == rio.CRS.from_epsg(5070)
+    assert all_parameters_changed_metadata.count == 2
+    assert all_parameters_changed_metadata.width == 5
+    assert all_parameters_changed_metadata.height == 9
+    assert all_parameters_changed_metadata.dtype == "int32"
+    assert all_parameters_changed_metadata.transform == rio.transform.Affine(
+        15.0, 10.0, -10.0, 0.0, -15.0, 80.0
+    )
+    assert all_parameters_changed_metadata.resolution == 10
+
+
 # Magic methods (dunder methods) tests --------------------------------------------
 def test_raster_metadata_repr():
     metadata = RasterMetadata(
