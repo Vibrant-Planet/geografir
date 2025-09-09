@@ -20,6 +20,7 @@ class RasterArray:
 
     def __init__(self, array: NDArray, metadata: RasterMetadata):
         _validate_3d_array(array)
+        _validate_array_shape_matches_metadata_shape(array, metadata)
 
         self.array = array
         self.metadata = metadata
@@ -33,4 +34,14 @@ class RasterArray:
 def _validate_3d_array(array: NDArray):
     if array.ndim != 3:
         msg = f"Array must have 3 dimensions, has {array.ndim}"
+        raise RasterArrayShapeError(msg)
+
+
+def _validate_array_shape_matches_metadata_shape(
+    array: NDArray, metadata: RasterMetadata
+):
+    if array.shape != metadata.shape:
+        msg = (
+            f"Array shape {array.shape} does not match metadata shape {metadata.shape}"
+        )
         raise RasterArrayShapeError(msg)

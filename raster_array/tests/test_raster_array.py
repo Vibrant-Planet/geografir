@@ -55,11 +55,14 @@ def test_raster_array_shape_error(raster_4_x_4_multiband):
     array = raster_4_x_4_multiband.read()
     metadata = RasterMetadata.from_profile(raster_4_x_4_multiband.profile)
 
-    # clip to 2d
-    array = array[0]
+    # clip array 2x3x3 without updating count in metadata
+    with pytest.raises(RasterArrayShapeError, match="does not match metadata shape"):
+        RasterArray(array[:, :3, :3], metadata)
+
+    # clip to 2d updating metadata
     metadata = metadata.copy(count=1)
 
     with pytest.raises(
         RasterArrayShapeError, match="Array must have 3 dimensions, has 2"
     ):
-        RasterArray(array, metadata)
+        RasterArray(array[0], metadata)
