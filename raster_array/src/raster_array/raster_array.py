@@ -92,7 +92,7 @@ class RasterArray:
         The output GeoTIFF is a COG, but lacks overviews by default.
 
         The alpha band is set to "UNSPECIFIED" so that an alpha band is not
-        automatically set. Four band int files are automatically created with RGBA set as the color interpretation,
+        automatically set. Otherwise, 4 band int files are automatically created with RGBA set as the color interpretation,
         which can result in issues with gdal computations when the last band is not actually an alpha band.
 
         TODO:
