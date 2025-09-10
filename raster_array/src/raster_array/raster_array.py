@@ -102,8 +102,7 @@ class RasterArray:
         Args:
             filename (str): Path to write the file.
         """
-        write_params = self.metadata.profile
-        write_params["alpha"] = "UNSPECIFIED"
+        profile = {**self.metadata.profile, "alpha": "UNSPECIFIED"}
 
         with rio.open(filename, "w", **write_params) as dst:
             dst.write(self.array)
