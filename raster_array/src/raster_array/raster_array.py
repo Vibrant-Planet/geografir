@@ -64,7 +64,7 @@ class RasterArray:
         return array
 
     # methods ---------------------------------------------------------------------
-    def band(self, index: int) -> NDArray:
+    def band(self, band_index: int) -> NDArray:
         """Return the given raster band as a 3D numpy array.
 
         Args:
@@ -73,7 +73,18 @@ class RasterArray:
         Returns:
             NDArray: a 3D array of the given band index.
         """
-        return self.array[slice(index - 1, index), :, :]
+        return self.array[slice(band_index - 1, band_index), :, :]
+
+    def band_masked(self, band_index: int) -> np.ma.MaskedArray:
+        """Return the given raster band as a 3D numpy MaskedArray.
+
+        Args:
+            band_index (int): the band index, starting at 1 to match rasterio's band index
+
+        Returns:
+            np.ma.MaskedArray: a 3D MaskedArray of the given band index.
+        """
+        return self.masked[slice(band_index - 1, band_index), :, :]
 
     # static methods --------------------------------------------------------------
     @staticmethod

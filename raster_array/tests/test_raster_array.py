@@ -88,7 +88,7 @@ def test_raster_array_dtype_error(raster_4_x_4_multiband):
         RasterArray(array, metadata)
 
 
-# PROPERTIES
+# PROPERTIES -------------------------------------------------------------------
 # RasterArray.mask -------------------------------------------------------------
 def test_raster_array_mask():
     mask = np.array([[[True, False], [False, True]], [[True, False], [False, True]]])
@@ -106,15 +106,6 @@ def test_raster_array_mask():
     ) as src:
         raster = RasterArray.from_raster(src)
         assert np.array_equal(raster.mask, mask)
-
-
-# METHODS
-## RasterArray.band ------------------------------------------------------------
-def test_raster_array_band(raster_4_x_4_multiband):
-    raster = RasterArray.from_raster(raster_4_x_4_multiband)
-
-    assert np.array_equal(raster.band(1), np.arange(0, 16).reshape((1, 4, 4)))
-    assert np.array_equal(raster.band(2), np.arange(16, 32).reshape((1, 4, 4)))
 
 
 ## RasterArray.masked ----------------------------------------------------------
@@ -144,7 +135,36 @@ def test_raster_array_masked():
         assert np.isnan(raster.masked.fill_value)
 
 
-# test RasterArray.from_raster -------------------------------------------------
+# METHODS ----------------------------------------------------------------------
+## RasterArray.band ------------------------------------------------------------
+def test_raster_array_band(raster_4_x_4_multiband):
+    raster = RasterArray.from_raster(raster_4_x_4_multiband)
+
+    assert np.array_equal(raster.band(1), np.arange(0, 16).reshape((1, 4, 4)))
+    assert np.array_equal(raster.band(2), np.arange(16, 32).reshape((1, 4, 4)))
+
+
+## RasterArray.band_masked ------------------------------------------------------------
+def test_raster_array_band_masked():
+    data = [[[-99, 1], [1, -99]], [[-99, 1], [1, -99]]]
+    with generate_raster(data, -99, np.int16) as src:
+        raster = RasterArray.from_raster(src)
+        band_1 = raster.band_masked(1)
+        band_2 = raster.band_masked(2)
+
+        assert isinstance(band_1, np.ma.MaskedArray)
+        assert np.array_equal(band_1.data, [[[-99, 1], [1, -99]]], equal_nan=True)
+        assert np.array_equal(band_1.mask, [[[True, False], [False, True]]])
+        assert band_1.fill_value == -99
+
+        assert isinstance(band_2, np.ma.MaskedArray)
+        assert np.array_equal(band_2.data, [[[-99, 1], [1, -99]]], equal_nan=True)
+        assert np.array_equal(band_2.mask, [[[True, False], [False, True]]])
+        assert band_2.fill_value == -99
+
+
+# STATICMETHODS ----------------------------------------------------------------
+## RasterArray.from_raster -----------------------------------------------------
 type_and_nodata_coercion_data = [
     # (data, src_nodata, target_nodata, src_dtype, target_dtype)
     ([[[0.0, 1.0], [1.0, 0.0]]], 0, -99, np.float32, np.int16),
@@ -185,7 +205,7 @@ def test_from_raster_simple_target_nodata_or_dtype_coercion(
             assert raster.metadata.nodata == target_nodata
 
 
-# test helpers -----------------------------------------------------------------
+# test helper methods ----------------------------------------------------------
 def test_ensure_valid_nodata():
     # coerce values if necessary
     assert ensure_valid_nodata(0, np.int16) == 0
