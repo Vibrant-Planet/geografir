@@ -1,6 +1,7 @@
 from geometry.geometry import Geometry
 
 import pytest
+import shapely as sp
 
 from pyproj import CRS
 from pyproj.exceptions import CRSError
@@ -89,7 +90,72 @@ def test_init_invalid_crs():
         Geometry(pt, "invalid_crs")
 
 
-# Magic methods (dunder methods) tests --------------------------------------------
+# Methods ----------------------------------------------------------------------
+## Geometry.to_crs
+crs_reprojection_data = [
+    (4326, Point(-120.185, 39.3569), 26910, Point(742545.777, 4360163.483)),
+    (26910, Point(742545.777, 4360163.483), 4326, Point(-120.185, 39.3569)),
+    (
+        4326,
+        Polygon(
+            [
+                (-119.2265119, 47.1494626),
+                (-76.8890466, 40.6633579),
+                (-98.5617967, 29.3224771),
+                (-119.2265119, 47.1494626),
+            ]
+        ),
+        5070,
+        Polygon(
+            [
+                (-1753062.53068809, 2899526.83714174),
+                (1591497.34267417, 2121855.51950513),
+                (-248908.09041749, 697602.45076673),
+                (-1753062.53068809, 2899526.83714174),
+            ]
+        ),
+    ),
+    (
+        5070,
+        Polygon(
+            [
+                (-1753062.53068809, 2899526.83714174),
+                (1591497.34267417, 2121855.51950513),
+                (-248908.09041749, 697602.45076673),
+                (-1753062.53068809, 2899526.83714174),
+            ]
+        ),
+        4326,
+        Polygon(
+            [
+                (-119.2265119, 47.1494626),
+                (-76.8890466, 40.6633579),
+                (-98.5617967, 29.3224771),
+                (-119.2265119, 47.1494626),
+            ]
+        ),
+    ),
+]
+
+
+@pytest.mark.parametrize(
+    "src_crs, src_shape, target_crs, target_shape", crs_reprojection_data
+)
+def test_geometry_to_crs(src_crs, src_shape, target_crs, target_shape):
+    src_geometry = Geometry(src_shape, src_crs)
+    xform_geometry = src_geometry.to_crs(target_crs)
+    target_geometry = Geometry(target_shape, target_crs)
+
+    print(xform_geometry.geometry.wkt)
+
+    assert isinstance(xform_geometry, Geometry)
+    assert xform_geometry.crs.equals(target_geometry.crs)
+    assert sp.equals_exact(
+        xform_geometry.geometry, target_geometry.geometry, tolerance=0.01
+    )
+
+
+# Magic methods (dunder methods) tests -----------------------------------------
 def test_geometry_repr():
     geometry = Geometry(Point(1.1, 2.2), CRS.from_epsg(4326))
     assert repr(geometry) == "Geometry(geometry=<POINT (1.1 2.2)>, crs='EPSG:4326')"
