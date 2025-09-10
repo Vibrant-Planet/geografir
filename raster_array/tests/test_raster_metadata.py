@@ -9,7 +9,7 @@ import rasterio as rio
 from rasterio.enums import Compression
 
 from raster_array.raster_metadata import RasterMetadata, NO_RESOLUTION_SPECIFIED
-from tests.raster_test_helpers import generate_raster
+from raster_array.raster_test_helpers import generate_raster
 
 
 def test_raster_metadata_init_basic():

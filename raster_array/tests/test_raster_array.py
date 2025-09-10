@@ -9,7 +9,7 @@ import rasterio as rio
 from raster_array.exceptions import RasterArrayShapeError, RasterArrayDtypeError
 from raster_array.raster_metadata import RasterMetadata
 from raster_array.raster_array import RasterArray, ensure_valid_nodata
-from tests.raster_test_helpers import generate_raster
+from raster_array.raster_test_helpers import generate_raster
 
 
 @pytest.fixture(scope="session")
