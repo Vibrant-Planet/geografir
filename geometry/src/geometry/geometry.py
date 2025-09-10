@@ -10,10 +10,15 @@ Classes:
         for geospatial operations and coordinate transformations.
 """
 
+from __future__ import annotations
+
 from shapely.geometry.base import BaseGeometry
+from shapely import ops
 
 from pyproj import CRS
+from pyproj import Transformer
 
+from geometry.exceptions import TransformError
 from geometry.crs import ensure_crs
 
 
@@ -92,7 +97,36 @@ class Geometry:
         self.geometry = geometry
         self.crs = ensure_crs(crs)
 
-    # Magic methods (dunder methods) ----------------------------------------------
+    # Methods ------------------------------------------------------------------
+    def to_crs(self, crs: CRS | int | str) -> Geometry:
+        """Convert the geometry to a different coordinate reference system.
+
+        Args:
+            crs (CRS | int | str): Coordinate reference system. Can be a pyproj CRS
+                object, EPSG code as integer, or any string format accepted by
+                `pyproj.CRS.from_user_input()` (e.g., "EPSG:4326", "WGS84", proj4 string).
+
+        Returns:
+            Geometry: A new Geometry object with the converted geometry and CRS.
+        """
+        target_crs = ensure_crs(crs)
+
+        if self.crs.equals(target_crs):
+            return self
+
+        # create transform object (this can fail if transforming between incompatible projects, this should be rare)
+        try:
+            transformer = Transformer.from_crs(self.crs, target_crs, always_xy=True)
+        except Exception as e:
+            raise TransformError(
+                f"Cannot create transformation from {self.crs} to {target_crs}"
+            ) from e
+
+        # then apply transform
+        transformed_geometry = ops.transform(transformer.transform, self.geometry)
+        return Geometry(transformed_geometry, target_crs)
+
+    # Magic methods (dunder methods) -------------------------------------------
     def __repr__(self) -> str:
         """Return string representation of the BoundingBox."""
         crs_repr = self.crs.to_string()
