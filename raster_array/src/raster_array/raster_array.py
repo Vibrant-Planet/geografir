@@ -39,13 +39,29 @@ class RasterArray:
         """Return a boolean mask array indicating which pixels are masked.
 
         Returns:
-            NDArray: a boolean array where True indicates a masked pixel.
+            NDArray: A boolean array where True indicates a masked pixel. The mask
+                is created with the `nodata` value in `RasterArray.metadata.nodata`.
         """
         return (
             np.isnan(self.array)
             if np.isnan(self.metadata.nodata)
             else self.array == self.metadata.nodata
         )
+
+    @property
+    def masked(self) -> np.ma.MaskedArray:
+        """Return a MaskedArray of the array.
+
+
+        Returns:
+            numpy.ma.MaskedArray: A `MaskedArray` of `RasterArray.array`. The mask
+                is created with the `nodata` value in `RasterArray.metadata.nodata`.
+        """
+        array = np.ma.MaskedArray(
+            data=self.array, mask=self.mask, fill_value=self.metadata.nodata
+        )
+
+        return array
 
     # methods ---------------------------------------------------------------------
     def band(self, index: int) -> NDArray:
@@ -58,13 +74,6 @@ class RasterArray:
             NDArray: a 3D array of the given band index.
         """
         return self.array[slice(index - 1, index), :, :]
-
-    def masked(self) -> np.ma.MaskedArray:
-        array = np.ma.MaskedArray(
-            data=self.array, mask=self.mask, fill_value=self.metadata.nodata
-        )
-
-        return array
 
     # static methods --------------------------------------------------------------
     @staticmethod

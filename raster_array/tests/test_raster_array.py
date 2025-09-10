@@ -121,19 +121,27 @@ def test_raster_array_band(raster_4_x_4_multiband):
 def test_raster_array_masked():
     mask = np.array([[[True, False], [False, True]], [[True, False], [False, True]]])
 
-    with generate_raster(
-        [[[-99, 1], [1, -99]], [[-99, 1], [1, -99]]], -99, np.int16
-    ) as src:
+    data = [[[-99, 1], [1, -99]], [[-99, 1], [1, -99]]]
+    with generate_raster(data, -99, np.int16) as src:
         raster = RasterArray.from_raster(src)
-        assert np.array_equal(raster.mask, mask)
 
+        assert isinstance(raster.masked, np.ma.MaskedArray)
+        assert np.array_equal(raster.masked.data, data, equal_nan=True)
+        assert np.array_equal(raster.masked.mask, mask)
+        assert raster.masked.fill_value == -99
+
+    data = [[[np.nan, 1.0], [1.0, np.nan]], [[np.nan, 1.0], [1.0, np.nan]]]
     with generate_raster(
-        [[[np.nan, 1.0], [1.0, np.nan]], [[np.nan, 1.0], [1.0, np.nan]]],
+        data,
         np.nan,
         np.float32,
     ) as src:
         raster = RasterArray.from_raster(src)
-        assert np.array_equal(raster.mask, mask, equal_nan=True)
+
+        assert isinstance(raster.masked, np.ma.MaskedArray)
+        assert np.array_equal(raster.masked.data, data, equal_nan=True)
+        assert np.array_equal(raster.masked.mask, mask)
+        assert np.isnan(raster.masked.fill_value)
 
 
 # test RasterArray.from_raster -------------------------------------------------
