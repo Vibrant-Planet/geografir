@@ -59,6 +59,13 @@ class RasterArray:
         """
         return self.array[slice(index - 1, index), :, :]
 
+    def masked(self) -> np.ma.MaskedArray:
+        array = np.ma.MaskedArray(
+            data=self.array, mask=self.mask, fill_value=self.metadata.nodata
+        )
+
+        return array
+
     # static methods --------------------------------------------------------------
     @staticmethod
     def from_raster(
