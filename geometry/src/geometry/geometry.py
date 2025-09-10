@@ -122,7 +122,7 @@ class Geometry:
                 f"Cannot create transformation from {self.crs} to {target_crs}"
             ) from e
 
-        # then apply trasnform
+        # then apply transform
         transformed_geometry = ops.transform(transformer.transform, self.geometry)
         return Geometry(transformed_geometry, target_crs)
 
