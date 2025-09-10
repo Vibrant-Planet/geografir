@@ -86,6 +86,27 @@ class RasterArray:
         """
         return self.masked[slice(band_index - 1, band_index), :, :]
 
+    def to_raster(self, filename: str) -> None:
+        """Save RasterArray as a Cloud Optimized GeoTIFF (COG).
+
+        The output GeoTIFF is a COG, but lacks overviews by default.
+
+        The alpha band is set to "UNSPECIFIED" so that an alpha band is not
+        automatically set. Otherwise, 4 band int files are automatically created with RGBA set as the color interpretation,
+        which can result in issues with gdal computations when the last band is not actually an alpha band.
+
+        TODO:
+            - Handle overviews
+            - Handle COG driver properly
+
+        Args:
+            filename (str): Path to write the file.
+        """
+        write_params = {**self.metadata.profile, "alpha": "UNSPECIFIED"}
+
+        with rio.open(filename, "w", **write_params) as dst:
+            dst.write(self.array)
+
     # static methods --------------------------------------------------------------
     @staticmethod
     def from_raster(
