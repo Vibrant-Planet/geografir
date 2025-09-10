@@ -200,6 +200,18 @@ class RasterMetadata:
         profile_values = itemgetter(*profile_fields)(profile)
         return RasterMetadata(**dict(zip(profile_fields, profile_values)))  # ty: ignore
 
+    @staticmethod
+    def from_raster(raster: str | rasterio.DatasetReader) -> RasterMetadata:
+        if isinstance(raster, rasterio.DatasetReader):
+            return RasterMetadata._from_datasetreader(raster)
+
+        with rasterio.open(raster) as src:
+            return RasterMetadata._from_datasetreader(src)
+
+    @staticmethod
+    def _from_datasetreader(src: rasterio.DatasetReader) -> RasterMetadata:
+        return RasterMetadata.from_profile(src.profile)
+
     # Magic methods (dunder methods) ----------------------------------------------
     def __repr__(self):
         """Return string representation of the RasterMetadata."""
