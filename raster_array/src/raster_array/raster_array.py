@@ -34,7 +34,58 @@ class RasterArray:
         self.metadata = metadata
 
     # properties ------------------------------------------------------------------
+    @property
+    def mask(self) -> NDArray:
+        """Return a boolean mask array indicating which pixels are masked.
+
+        Returns:
+            NDArray: A boolean array where True indicates a masked pixel. The mask
+                is created with the `nodata` value in `RasterArray.metadata.nodata`.
+        """
+        return (
+            np.isnan(self.array)
+            if np.isnan(self.metadata.nodata)
+            else self.array == self.metadata.nodata
+        )
+
+    @property
+    def masked(self) -> np.ma.MaskedArray:
+        """Return a MaskedArray of the array.
+
+
+        Returns:
+            numpy.ma.MaskedArray: A `MaskedArray` of `RasterArray.array`. The mask
+                is created with the `nodata` value in `RasterArray.metadata.nodata`.
+        """
+        array = np.ma.MaskedArray(
+            data=self.array, mask=self.mask, fill_value=self.metadata.nodata
+        )
+
+        return array
+
     # methods ---------------------------------------------------------------------
+    def band(self, band_index: int) -> NDArray:
+        """Return the given raster band as a 3D numpy array.
+
+        Args:
+            band_index (int): the band index, starting at 1 to match rasterio's band index
+
+        Returns:
+            NDArray: a 3D array of the given band index.
+        """
+        return self.array[slice(band_index - 1, band_index), :, :]
+
+    def band_masked(self, band_index: int) -> np.ma.MaskedArray:
+        """Return the given raster band as a 3D numpy MaskedArray.
+
+        Args:
+            band_index (int): the band index, starting at 1 to match rasterio's band index
+
+        Returns:
+            np.ma.MaskedArray: a 3D MaskedArray of the given band index.
+        """
+        return self.masked[slice(band_index - 1, band_index), :, :]
+
     # static methods --------------------------------------------------------------
     @staticmethod
     def from_raster(
@@ -88,13 +139,6 @@ class RasterArray:
             transform=transform,
             nodata=out_nodata,
             dtype=out_dtype,
-        )
-
-        print(
-            f"src nodata: {src_metadata.nodata}, target nodata: {target_nodata}, out nodata: {out_nodata}"
-        )
-        print(
-            f"src dtype: {src_metadata.dtype}, target dtype: {target_dtype}, out dtype: {out_dtype}"
         )
 
         return RasterArray(data, metadata)
