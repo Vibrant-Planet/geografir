@@ -139,6 +139,16 @@ def test_raster_array_band_masked():
         assert band_2.fill_value == -99
 
 
+def test_raster_array_to_raster(raster_4_x_4_multiband, tmp_path):
+    raster = RasterArray.from_raster(raster_4_x_4_multiband)
+    out_path = tmp_path / "test.tiff"
+    raster.to_raster(out_path)
+
+    reread_raster = RasterArray.from_raster(out_path)
+
+    assert np.array_equal(raster.array, reread_raster.array)
+
+
 # STATICMETHODS ----------------------------------------------------------------
 ## RasterArray.from_raster -----------------------------------------------------
 type_and_nodata_coercion_data = [
