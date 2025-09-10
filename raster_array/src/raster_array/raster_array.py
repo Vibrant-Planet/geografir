@@ -34,7 +34,31 @@ class RasterArray:
         self.metadata = metadata
 
     # properties ------------------------------------------------------------------
+    @property
+    def mask(self) -> NDArray:
+        """Return a boolean mask array indicating which pixels are masked.
+
+        Returns:
+            NDArray: a boolean array where True indicates a masked pixel.
+        """
+        return (
+            np.isnan(self.array)
+            if np.isnan(self.metadata.nodata)
+            else self.array == self.metadata.nodata
+        )
+
     # methods ---------------------------------------------------------------------
+    def band(self, index: int) -> NDArray:
+        """Return the given raster band as a 3D numpy array.
+
+        Args:
+            band_index (int): the band index, starting at 1 to match rasterio's band index
+
+        Returns:
+            NDArray: a 3D array of the given band index.
+        """
+        return self.array[slice(index - 1, index), :, :]
+
     # static methods --------------------------------------------------------------
     @staticmethod
     def from_raster(
@@ -88,13 +112,6 @@ class RasterArray:
             transform=transform,
             nodata=out_nodata,
             dtype=out_dtype,
-        )
-
-        print(
-            f"src nodata: {src_metadata.nodata}, target nodata: {target_nodata}, out nodata: {out_nodata}"
-        )
-        print(
-            f"src dtype: {src_metadata.dtype}, target dtype: {target_dtype}, out dtype: {out_dtype}"
         )
 
         return RasterArray(data, metadata)

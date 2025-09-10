@@ -88,6 +88,35 @@ def test_raster_array_dtype_error(raster_4_x_4_multiband):
         RasterArray(array, metadata)
 
 
+# PROPERTIES
+# RasterArray.mask -------------------------------------------------------------
+def test_raster_array_mask():
+    mask = np.array([[[True, False], [False, True]], [[True, False], [False, True]]])
+
+    with generate_raster(
+        [[[-99, 1], [1, -99]], [[-99, 1], [1, -99]]], -99, np.int16
+    ) as src:
+        raster = RasterArray.from_raster(src)
+        assert np.array_equal(raster.mask, mask)
+
+    with generate_raster(
+        [[[np.nan, 1.0], [1.0, np.nan]], [[np.nan, 1.0], [1.0, np.nan]]],
+        np.nan,
+        np.float32,
+    ) as src:
+        raster = RasterArray.from_raster(src)
+        assert np.array_equal(raster.mask, mask)
+
+
+# METHODS
+# test RasterArray.band --------------------------------------------------------
+def test_raster_array_band(raster_4_x_4_multiband):
+    raster = RasterArray.from_raster(raster_4_x_4_multiband)
+
+    assert np.array_equal(raster.band(1), np.arange(0, 16).reshape((1, 4, 4)))
+    assert np.array_equal(raster.band(2), np.arange(16, 32).reshape((1, 4, 4)))
+
+
 # test RasterArray.from_raster -------------------------------------------------
 type_and_nodata_coercion_data = [
     # (data, src_nodata, target_nodata, src_dtype, target_dtype)
