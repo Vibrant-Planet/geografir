@@ -124,7 +124,7 @@ def test_from_raster_simple_target_nodata_or_dtype_coercion(
         assert raster.array.dtype == target_dtype
         assert raster.metadata.dtype == target_dtype
         if np.isnan(target_nodata):
-            assert np.isnan(target_nodata)
+            assert np.isnan(raster.metadata.nodata)
         else:
             assert raster.metadata.nodata == target_nodata
 
