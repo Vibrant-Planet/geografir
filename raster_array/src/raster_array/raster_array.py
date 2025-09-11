@@ -6,6 +6,8 @@ import numpy as np
 import rasterio as rio
 
 from numpy.typing import NDArray, DTypeLike
+from rasterio.enums import Resampling
+from rasterio.warp import reproject
 
 from raster_array.exceptions import RasterArrayShapeError, RasterArrayDtypeError
 from raster_array.raster_metadata import RasterMetadata
@@ -85,6 +87,59 @@ class RasterArray:
             np.ma.MaskedArray: a 3D MaskedArray of the given band index.
         """
         return self.masked[slice(band_index - 1, band_index), :, :]
+
+    def conform_to(
+        self,
+        raster: RasterArray,
+        resampling: Resampling = Resampling.nearest,
+    ) -> RasterArray:
+        if not isinstance(raster, RasterArray):
+            raise ValueError("raster must be of type RasterArray")
+
+        # TODO: check that self and raster overlap, if not return self or raise
+        # TODO: overrides for dtype and nodata
+        out_meta = self.metadata.copy(
+            crs=raster.metadata.crs,
+            height=raster.metadata.height,
+            transform=raster.metadata.transform,
+            width=raster.metadata.width,
+        )
+        print(out_meta)
+
+        out_array = np.empty(shape=out_meta.shape, dtype=out_meta.dtype)
+
+        out_data, _ = reproject(
+            source=self.array,
+            destination=out_array,
+            src_nodata=self.metadata.nodata,
+            src_transform=self.metadata.transform,
+            src_crs=self.metadata.crs,
+            dst_nodata=out_meta.nodata,
+            dst_transform=out_meta.transform,
+            dst_crs=out_meta.crs,
+            resampling=resampling,
+            UNIFIED_SRC_NODATA="NO",
+        )
+        out_mask = (
+            np.isnan(out_data)
+            if np.isnan(out_meta.nodata)
+            else out_data == out_meta.nodata
+        )
+        merged_mask = np.logical_or(raster.mask, out_mask)
+
+        print("printing masks")
+        print("self.mask")
+        print(self.mask)
+        print("raster.mask")
+        print(raster.mask)
+        print("out_mask")
+        print(out_mask)
+        print("merged_mask")
+        print(merged_mask)
+
+        out_data[merged_mask] = out_meta.nodata
+
+        return RasterArray(out_data, out_meta)
 
     def to_raster(self, filename: str) -> None:
         """Save RasterArray as a Cloud Optimized GeoTIFF (COG).
