@@ -409,6 +409,21 @@ def test_raster_array_conform_to_multiband_w_different_masks():
     assert conformed.metadata.dtype == src_raster.metadata.dtype
 
 
+def test_raster_array_conform_to_reprojects_resamples(raster_4326, raster_26910):
+    src_raster = raster_4326
+    ref_raster = raster_26910
+
+    conformed = src_raster.conform_to(ref_raster)
+
+    assert isinstance(conformed, RasterArray)
+    # conformed data is from the center of the src raster
+    assert conformed.array.min() > 20
+    assert conformed.array.max() < 80
+    assert conformed.metadata.crs.equals(ref_raster.metadata.crs)
+    assert conformed.metadata.width == ref_raster.metadata.width
+    assert conformed.metadata.height == ref_raster.metadata.height
+
+
 def test_raster_array_conform_to_override_nodata():
     src_data = np.array([[[1, 0], [0, 1]]], dtype=np.int16)
     ref_data = np.ones((1, 2, 2), dtype=np.uint8)
@@ -444,21 +459,6 @@ def test_raster_array_conform_to_override_dtype():
         conformed.array, np.array([[[1.0, 0.0], [0.0, 1.0]]], dtype=np.float32)
     )
     assert np.array_equal(conformed.mask, (src_data == 0))
-
-
-def test_raster_array_conform_to_reprojects_resamples(raster_4326, raster_26910):
-    src_raster = raster_4326
-    ref_raster = raster_26910
-
-    conformed = src_raster.conform_to(ref_raster)
-
-    assert isinstance(conformed, RasterArray)
-    # conformed data is from the center of the src raster
-    assert conformed.array.min() > 20
-    assert conformed.array.max() < 80
-    assert conformed.metadata.crs.equals(ref_raster.metadata.crs)
-    assert conformed.metadata.width == ref_raster.metadata.width
-    assert conformed.metadata.height == ref_raster.metadata.height
 
 
 ## RasterArray.to_raster -------------------------------------------------------
