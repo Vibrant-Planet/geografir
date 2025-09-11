@@ -132,15 +132,15 @@ class RasterArray:
         )
         merged_mask = np.logical_or(raster.mask, out_mask)
 
-        print("printing masks")
-        print("self.mask")
-        print(self.mask)
-        print("raster.mask")
-        print(raster.mask)
-        print("out_mask")
-        print(out_mask)
-        print("merged_mask")
-        print(merged_mask)
+        # print("printing masks")
+        # print("self.mask")
+        # print(self.mask)
+        # print("raster.mask")
+        # print(raster.mask)
+        # print("out_mask")
+        # print(out_mask)
+        # print("merged_mask")
+        # print(merged_mask)
 
         out_data[merged_mask] = out_meta.nodata
 

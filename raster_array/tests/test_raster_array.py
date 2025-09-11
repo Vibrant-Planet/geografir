@@ -13,6 +13,51 @@ from raster_array.raster_test_helpers import generate_raster
 
 
 @pytest.fixture(scope="session")
+def raster_4326():
+    minx, miny, maxx, maxy = (-120, 36, -119, 37)
+    width, height = 10, 10
+    transform = rio.transform.from_bounds(minx, miny, maxx, maxy, width, height)
+
+    metadata = RasterMetadata(
+        crs=rio.CRS.from_epsg(4326),
+        count=1,
+        width=width,
+        height=height,
+        dtype=np.int16,
+        nodata=-99,
+        transform=transform,
+    )
+    data = np.arange((width * height), dtype=np.int16).reshape(metadata.shape)
+
+    return RasterArray(data, metadata)
+
+
+@pytest.fixture(scope="session")
+def raster_26910():
+    minx, miny, maxx, maxy = (
+        790160.7511689162,
+        4016578.305503206,
+        836981.5460881409,
+        4073700.8147444506,
+    )
+    width, height = 25, 25
+    transform = rio.transform.from_bounds(minx, miny, maxx, maxy, width, height)
+
+    metadata = RasterMetadata(
+        crs=rio.CRS.from_epsg(26910),
+        count=1,
+        width=width,
+        height=height,
+        dtype=np.uint8,
+        nodata=0,
+        transform=transform,
+    )
+    data = np.ones(metadata.shape, dtype=np.uint8)
+
+    return RasterArray(data, metadata)
+
+
+@pytest.fixture(scope="session")
 def raster_4_x_4_multiband():
     shape = (2, 4, 4)
     count, height, width = shape
@@ -151,13 +196,6 @@ def test_raster_array_conform_to_simple():
         ref_raster = RasterArray.from_raster(ref)
 
     conformed = src_raster.conform_to(ref_raster)
-
-    print("src raster")
-    print(src_raster.array)
-    print("ref raster")
-    print(ref_raster.array)
-    print("conformed")
-    print(conformed.array)
 
     expected_array = np.array([[[9, 10], [13, 14]]])
 
@@ -406,6 +444,20 @@ def test_raster_array_conform_to_override_dtype():
         conformed.array, np.array([[[1.0, 0.0], [0.0, 1.0]]], dtype=np.float32)
     )
     assert np.array_equal(conformed.mask, (src_data == 0))
+
+
+def test_raster_array_conform_to_reprojects_resamples(raster_4326, raster_26910):
+    src_raster = raster_4326
+    ref_raster = raster_26910
+
+    conformed = src_raster.conform_to(ref_raster)
+
+    assert isinstance(conformed, RasterArray)
+    # conformed data is from the center of the src raster
+    assert conformed.array.min() > 20
+    assert conformed.array.max() < 80
+    assert conformed.metadata.width == ref_raster.metadata.width
+    assert conformed.metadata.height == ref_raster.metadata.height
 
 
 ## RasterArray.to_raster -------------------------------------------------------
