@@ -1,7 +1,6 @@
 # type: ignore
 """Tests for the RasterArray class."""
 
-from contextlib import contextmanager
 import numpy as np
 import pytest
 import rasterio as rio
@@ -10,30 +9,7 @@ import rasterio as rio
 from raster_array.exceptions import RasterArrayShapeError, RasterArrayDtypeError
 from raster_array.raster_metadata import RasterMetadata
 from raster_array.raster_array import RasterArray, ensure_valid_nodata
-
-
-@contextmanager
-def generate_raster(data, nodata, dtype):
-    data = data if isinstance(data, np.ndarray) else np.array(data, dtype=dtype)
-    count, height, width = data.shape
-    bounds = (0, 0, width, height)
-
-    metadata = RasterMetadata(
-        crs=rio.CRS.from_epsg(4326),
-        count=count,
-        width=width,
-        height=height,
-        dtype=dtype,
-        nodata=nodata,
-        transform=rio.transform.from_bounds(*bounds, width, height),
-        resolution=1,
-    )
-
-    with rio.io.MemoryFile() as memfile:
-        with memfile.open(**metadata.profile) as dataset:
-            dataset.write(data)
-        with memfile.open() as dataset:
-            yield dataset
+from raster_array.raster_test_helpers import generate_raster
 
 
 @pytest.fixture(scope="session")

@@ -9,6 +9,7 @@ import rasterio as rio
 from rasterio.enums import Compression
 
 from raster_array.raster_metadata import RasterMetadata, NO_RESOLUTION_SPECIFIED
+from raster_array.raster_test_helpers import generate_raster
 
 
 def test_raster_metadata_init_basic():
@@ -258,6 +259,17 @@ def test_raster_metadata_from_profile():
     metadata = RasterMetadata.from_profile(profile)
 
     assert profile == metadata.profile
+
+
+def test_raster_metadata_from_raster():
+    with generate_raster([[[0, 1], [1, 0]]], 0, np.int16) as src:
+        metadata = RasterMetadata.from_raster(src)
+
+        assert metadata.crs.equals(rio.CRS.from_epsg(4326))
+        assert metadata.transform == rio.transform.Affine(1.0, 0.0, 0.0, 0.0, -1.0, 2.0)
+        assert metadata.count == 1
+        assert metadata.width == 2
+        assert metadata.height == 2
 
 
 # Methods tests -----------------------------------------------------------------
