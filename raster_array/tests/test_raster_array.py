@@ -456,6 +456,7 @@ def test_raster_array_conform_to_reprojects_resamples(raster_4326, raster_26910)
     # conformed data is from the center of the src raster
     assert conformed.array.min() > 20
     assert conformed.array.max() < 80
+    assert conformed.metadata.crs.equals(ref_raster.metadata.crs)
     assert conformed.metadata.width == ref_raster.metadata.width
     assert conformed.metadata.height == ref_raster.metadata.height
 

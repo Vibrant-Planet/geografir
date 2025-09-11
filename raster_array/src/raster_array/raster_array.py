@@ -95,6 +95,25 @@ class RasterArray:
         target_dtype: DTypeLike | None = None,
         resampling: Resampling = Resampling.nearest,
     ) -> RasterArray:
+        """Conform the raster array to a given raster array.
+
+        This function can do all 3 of:
+            - Reproject the RasterArray to the given raster's CRS.
+            - Resample the RasterArray to the given raster's resolution.
+            - Clip the RasterArray to the reference rasters extent (bounding box).
+
+        Internally, this function uses the `rasterio.reproject` to handle the conform process.
+        See: https://rasterio.readthedocs.io/en/latest/api/rasterio.warp.html#rasterio.warp.reproject.
+
+        Args:
+            raster (RasterArray): the raster array to conform to
+            target_nodata (int | float | None, optional): the target nodata, this will override the current nodata value of self. Defaults to None.
+            target_dtype (DTypeLike | None, optional): the target dtype, this will override the current dtype of self. Defaults to None.
+            resampling (Resampling, optional): the resampling method. Defaults to Resampling.nearest.
+
+        Returns:
+            RasterArray: the conformed raster array
+        """
         if not isinstance(raster, RasterArray):
             raise ValueError("raster must be of type RasterArray")
 
@@ -109,10 +128,8 @@ class RasterArray:
             transform=raster.metadata.transform,
             width=raster.metadata.width,
         )
-        print(out_meta)
 
         out_array = np.empty(shape=out_meta.shape, dtype=out_meta.dtype)
-
         out_data, _ = reproject(
             source=self.array,
             destination=out_array,
@@ -131,17 +148,6 @@ class RasterArray:
             else out_data == out_meta.nodata
         )
         merged_mask = np.logical_or(raster.mask, out_mask)
-
-        # print("printing masks")
-        # print("self.mask")
-        # print(self.mask)
-        # print("raster.mask")
-        # print(raster.mask)
-        # print("out_mask")
-        # print(out_mask)
-        # print("merged_mask")
-        # print(merged_mask)
-
         out_data[merged_mask] = out_meta.nodata
 
         return RasterArray(out_data, out_meta)
