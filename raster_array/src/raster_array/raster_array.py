@@ -91,14 +91,19 @@ class RasterArray:
     def conform_to(
         self,
         raster: RasterArray,
+        target_nodata: int | float | None = None,
+        target_dtype: DTypeLike | None = None,
         resampling: Resampling = Resampling.nearest,
     ) -> RasterArray:
         if not isinstance(raster, RasterArray):
             raise ValueError("raster must be of type RasterArray")
 
         # TODO: check that self and raster overlap, if not return self or raise
-        # TODO: overrides for dtype and nodata
+        nodata = target_nodata or self.metadata.nodata
+        dtype = target_dtype or self.metadata.dtype
         out_meta = self.metadata.copy(
+            nodata=nodata,
+            dtype=dtype,
             crs=raster.metadata.crs,
             height=raster.metadata.height,
             transform=raster.metadata.transform,

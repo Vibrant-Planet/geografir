@@ -226,13 +226,6 @@ def test_raster_array_conform_to_with_ref_mask():
 
     conformed = src_raster.conform_to(ref_raster)
 
-    print("src raster")
-    print(src_raster.array)
-    print("ref raster")
-    print(ref_raster.array)
-    print("conformed")
-    print(conformed.array)
-
     expected_array = np.array(
         [[[0, 0, 0, 0], [0, 99, 99, 0], [0, 99, 99, 0], [0, 0, 0, 0]]]
     )
@@ -376,6 +369,43 @@ def test_raster_array_conform_to_multiband_w_different_masks():
     # nodata and dtype are the same as the input raster
     assert conformed.metadata.nodata == src_raster.metadata.nodata
     assert conformed.metadata.dtype == src_raster.metadata.dtype
+
+
+def test_raster_array_conform_to_override_nodata():
+    src_data = np.array([[[1, 0], [0, 1]]], dtype=np.int16)
+    ref_data = np.ones((1, 2, 2), dtype=np.uint8)
+    with (
+        generate_raster(src_data, nodata=0, dtype=np.int16) as src,
+        generate_raster(ref_data, nodata=0, dtype=np.uint8) as ref,
+    ):
+        src_raster = RasterArray.from_raster(src)
+        ref_raster = RasterArray.from_raster(ref)
+
+    conformed = src_raster.conform_to(ref_raster, target_nodata=-99)
+
+    assert conformed.metadata.nodata == -99
+    assert np.array_equal(conformed.array, np.array([[[1, -99], [-99, 1]]]))
+    assert np.array_equal(conformed.mask, (src_data == 0))
+
+
+def test_raster_array_conform_to_override_dtype():
+    src_data = np.array([[[1, 0], [0, 1]]], dtype=np.int16)
+    ref_data = np.ones((1, 2, 2), dtype=np.uint8)
+    with (
+        generate_raster(src_data, nodata=0, dtype=np.int16) as src,
+        generate_raster(ref_data, nodata=0, dtype=np.uint8) as ref,
+    ):
+        src_raster = RasterArray.from_raster(src)
+        ref_raster = RasterArray.from_raster(ref)
+
+    conformed = src_raster.conform_to(ref_raster, target_dtype=np.float32)
+
+    assert conformed.metadata.dtype == np.float32
+    assert conformed.array.dtype == np.float32
+    assert np.array_equal(
+        conformed.array, np.array([[[1.0, 0.0], [0.0, 1.0]]], dtype=np.float32)
+    )
+    assert np.array_equal(conformed.mask, (src_data == 0))
 
 
 ## RasterArray.to_raster -------------------------------------------------------
