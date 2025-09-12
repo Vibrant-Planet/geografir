@@ -22,29 +22,26 @@ Exceptions:
     RasterArrayDtypeError: If the array and metadata are not the same.
 
 Examples:
-    # Basic raster processing with RasterArray
-
-    import numpy as np
-    import rasterio as rio
-
-    from raster_array.raster_array import RasterArray
-    from raster_array.raster_metadata import RasterMetadata
-
-    # create a RasterArray with a numpy array and metadata
-    # Metadata is very similar to a rasterio.profiles.Profile
-    width, height = 10, 10
-    metadata = RasterMetadata(
-        crs=rio.CRS.from_epsg(4326),
-        count=1,
-        width=width,
-        height=height,
-        dtype=np.int16,
-        nodata=-99,
-        transform=rio.transform.from_bounds(0, 0, width, height, width, height),
-    )
-    data = np.arange(np.prod(metadata.shape), dtype=metadata.dtype).reshape(metadata.shape)
-
-    raster = RasterArray(data, metadata)
+    >>> # Basic raster processing with RasterArray
+    >>> import numpy as np
+    >>> import rasterio as rio
+    >>> from raster_array.raster_array import RasterArray
+    >>> from raster_array.raster_metadata import RasterMetadata
+    >>>
+    >>> # create a RasterArray with a numpy array and metadata
+    >>> # Metadata is very similar to a rasterio.profiles.Profile
+    >>> width, height = 10, 10
+    >>> metadata = RasterMetadata(
+    ...     crs=rio.CRS.from_epsg(4326),
+    ...     count=1,
+    ...     width=width,
+    ...     height=height,
+    ...     dtype=np.int16,
+    ...     nodata=-99,
+    ...     transform=rio.transform.from_bounds(0, 0, width, height, width, height),
+    ... )
+    >>> data = np.arange(np.prod(metadata.shape), dtype=metadata.dtype).reshape(metadata.shape)
+    >>> raster = RasterArray(data, metadata)
 """
 
 from __future__ import annotations
