@@ -16,7 +16,11 @@ This package provides two classes for representing geospatial shapes: `Geometry`
 While under active development install directly from GitHub using `uv`:
 
 ```shell
-uv add https://github.com/Vibrant-Planet/geografir.git#subdirectory=geometry
+# with pip
+pip install git+https://github.com/Vibrant-Planet/geografir.git#subdirectory=geometry
+
+# with uv
+uv add git+https://github.com/Vibrant-Planet/geografir.git#subdirectory=geometry
 ```
 
 ## Basic Usage
