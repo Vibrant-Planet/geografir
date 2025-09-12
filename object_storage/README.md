@@ -6,8 +6,12 @@ Helpers for interacting with objects stored on S3. This package is specific to S
 
 While under active development install directly from GitHub:
 
-```
-uv add https://github.com/Vibrant-Planet/geografir.git#subdirectory=object_storage                 1.543s
+```shell
+# with pip
+pip install git+https://github.com/Vibrant-Planet/geografir.git#subdirectory=object_storage
+
+# with uv
+uv add git+https://github.com/Vibrant-Planet/geografir.git#subdirectory=object_storage
 ```
 
 ## Usage
