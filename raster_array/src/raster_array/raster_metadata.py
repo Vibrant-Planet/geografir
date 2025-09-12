@@ -4,6 +4,29 @@ This module provides the RasterMetadata class, which stores and manages
 geospatial raster metadata including coordinate reference system, dimensions,
 data type, and geospatial transformation information. The class is designed
 to work seamlessly with rasterio profiles.
+
+Classes:
+    RasterMetadata: A container for raster metadata, similar to a
+        `rasterio.profiles.Profile`.
+
+Examples:
+    >>> from rasterio.crs import CRS
+    >>> from rasterio.transform import from_bounds
+    >>> import numpy as np
+    >>>
+    >>> # Create metadata for a basic raster
+    >>> crs = CRS.from_epsg(4326)
+    >>> transform = from_bounds(-180, -90, 180, 90, 360, 180)
+    >>> metadata = RasterMetadata(
+    ...     crs=crs,
+    ...     count=3,
+    ...     width=360,
+    ...     height=180,
+    ...     dtype=np.float32,
+    ...     nodata=-9999,
+    ...     transform=transform,
+    ...     resolution=1.0
+    ... )
 """
 
 from __future__ import annotations
@@ -46,25 +69,6 @@ class RasterMetadata:
             pixel coordinates to geographic coordinates.
         resolution (int | float): Spatial resolution of the raster. Defaults
             to NO_RESOLUTION_SPECIFIED if not provided.
-
-    Examples:
-        >>> from rasterio.crs import CRS
-        >>> from rasterio.transform import from_bounds
-        >>> import numpy as np
-        >>>
-        >>> # Create metadata for a basic raster
-        >>> crs = CRS.from_epsg(4326)
-        >>> transform = from_bounds(-180, -90, 180, 90, 360, 180)
-        >>> metadata = RasterMetadata(
-        ...     crs=crs,
-        ...     count=3,
-        ...     width=360,
-        ...     height=180,
-        ...     dtype=np.float32,
-        ...     nodata=-9999,
-        ...     transform=transform,
-        ...     resolution=1.0
-        ... )
     """
 
     crs: CRS
