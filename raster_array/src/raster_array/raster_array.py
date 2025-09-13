@@ -244,6 +244,7 @@ class RasterArray:
     @staticmethod
     def from_raster(
         raster: str | rio.DatasetReader,
+        band_index: int | None = None,
         target_nodata: int | float | None = None,
         target_dtype: DTypeLike | None = None,
     ) -> RasterArray:
@@ -251,6 +252,8 @@ class RasterArray:
 
         Args:
             raster (str | rio.DatasetReader): Path to the raster file or DatasetReader.
+            band_index (int | None): Only read the given band index from the raster.
+                This will still return a 3D array. Defaults to None which will read all bands.
             target_nodata (int | float | None): Target nodata value, this will override
                 the current nodata value of the raster. Defaults to None.
             target_dtype (DTypeLike | None): Target data type, this will override
@@ -260,35 +263,48 @@ class RasterArray:
             RasterArray: The created RasterArray.
         """
         if isinstance(raster, rio.DatasetReader):
-            return RasterArray._from_datasetreader(raster, target_nodata, target_dtype)
+            return RasterArray._from_datasetreader(
+                raster, band_index, target_nodata, target_dtype
+            )
 
         with rio.open(raster) as src:
-            return RasterArray._from_datasetreader(src, target_nodata, target_dtype)
+            return RasterArray._from_datasetreader(
+                src, band_index, target_nodata, target_dtype
+            )
 
     # magic methods (dunder methods) ----------------------------------------------
     # private helper methods ------------------------------------------------------
     @staticmethod
     def _from_datasetreader(
         src: rio.DatasetReader,
+        band_index: int | None = None,
         target_nodata: int | float | None = None,
         target_dtype: DTypeLike | None = None,
     ) -> RasterArray:
         """Core logic for RasterArray.from_raster."""
         src_metadata = RasterMetadata.from_profile(src.profile)
 
-        out_nodata = target_nodata if target_nodata else src_metadata.nodata
         out_dtype = target_dtype if target_dtype else src_metadata.dtype
-
-        if target_nodata or target_dtype:
-            out_nodata = ensure_valid_nodata(out_nodata, out_dtype)
-
+        out_nodata = (
+            ensure_valid_nodata(target_nodata, out_dtype)
+            if target_nodata
+            else src_metadata.nodata
+        )
         transform = src_metadata.transform
+        indexes = [band_index] if band_index else None
+        n_bands = len(indexes) if indexes else src_metadata.count
+        out_shape = (
+            (n_bands, src_metadata.height, src_metadata.width)
+            if band_index
+            else src_metadata.shape
+        )
+
         src_read_kwargs: dict[str, Any] = {
+            "indexes": indexes,
             "masked": False,
-            "out_shape": src_metadata.shape,
+            "out_shape": out_shape,
             "out_dtype": out_dtype,
         }
-
         data = src.read(**src_read_kwargs)
 
         # coerce nodata values to out_nodata
@@ -300,6 +316,7 @@ class RasterArray:
         data[replacement_mask] = out_nodata
 
         metadata = src_metadata.copy(
+            count=n_bands,
             width=src_read_kwargs["out_shape"][-1],
             height=src_read_kwargs["out_shape"][-2],
             transform=transform,
