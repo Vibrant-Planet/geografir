@@ -95,6 +95,8 @@ def test_band_tags_write_tags(raster_4_x_4_multiband, tmp_path):
 def test_band_tags_from_raster(raster_4_x_4_multiband):
     band_tags = BandTags.from_raster(raster_4_x_4_multiband)
 
+    print(band_tags.tags)
+
     assert band_tags.tags[1] == {"classification": "red"}
     assert band_tags.tags[2] == {"classification": "orange", "tree": "maple"}
     assert band_tags.tags[3] == {"classification": "yellow"}
