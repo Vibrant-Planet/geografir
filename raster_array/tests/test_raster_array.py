@@ -13,6 +13,51 @@ from raster_array.raster_test_helpers import generate_raster
 
 
 @pytest.fixture(scope="session")
+def raster_4326():
+    minx, miny, maxx, maxy = (-120, 36, -119, 37)
+    width, height = 10, 10
+    transform = rio.transform.from_bounds(minx, miny, maxx, maxy, width, height)
+
+    metadata = RasterMetadata(
+        crs=rio.CRS.from_epsg(4326),
+        count=1,
+        width=width,
+        height=height,
+        dtype=np.int16,
+        nodata=-99,
+        transform=transform,
+    )
+    data = np.arange((width * height), dtype=np.int16).reshape(metadata.shape)
+
+    return RasterArray(data, metadata)
+
+
+@pytest.fixture(scope="session")
+def raster_26910():
+    minx, miny, maxx, maxy = (
+        790160.7511689162,
+        4016578.305503206,
+        836981.5460881409,
+        4073700.8147444506,
+    )
+    width, height = 25, 25
+    transform = rio.transform.from_bounds(minx, miny, maxx, maxy, width, height)
+
+    metadata = RasterMetadata(
+        crs=rio.CRS.from_epsg(26910),
+        count=1,
+        width=width,
+        height=height,
+        dtype=np.uint8,
+        nodata=0,
+        transform=transform,
+    )
+    data = np.ones(metadata.shape, dtype=np.uint8)
+
+    return RasterArray(data, metadata)
+
+
+@pytest.fixture(scope="session")
 def raster_4_x_4_multiband():
     shape = (2, 4, 4)
     count, height, width = shape
@@ -120,7 +165,7 @@ def test_raster_array_band(raster_4_x_4_multiband):
     assert np.array_equal(raster.band(2), np.arange(16, 32).reshape((1, 4, 4)))
 
 
-## RasterArray.band_masked ------------------------------------------------------------
+## RasterArray.band_masked -----------------------------------------------------
 def test_raster_array_band_masked():
     data = [[[-99, 1], [1, -99]], [[-99, 1], [1, -99]]]
     with generate_raster(data, -99, np.int16) as src:
@@ -139,6 +184,284 @@ def test_raster_array_band_masked():
         assert band_2.fill_value == -99
 
 
+## RasterArray.conform_to ------------------------------------------------------
+def test_raster_array_conform_to_simple():
+    src_data = np.arange(1, 17).reshape((1, 4, 4)).astype(np.int16)
+    ref_data = np.ones((1, 2, 2), dtype=np.uint8)
+    with (
+        generate_raster(src_data, nodata=0, dtype=np.int16) as src,
+        generate_raster(ref_data, nodata=0, dtype=np.uint8) as ref,
+    ):
+        src_raster = RasterArray.from_raster(src)
+        ref_raster = RasterArray.from_raster(ref)
+
+    conformed = src_raster.conform_to(ref_raster)
+
+    expected_array = np.array([[[9, 10], [13, 14]]])
+
+    assert np.array_equal(conformed.array, expected_array)
+    assert conformed.metadata.shape == ref_raster.metadata.shape
+    assert conformed.metadata.crs.equals(ref_raster.metadata.crs)
+    # nodata and dtype are the same as the input raster
+    assert conformed.metadata.nodata == src_raster.metadata.nodata
+    assert conformed.metadata.dtype == src_raster.metadata.dtype
+
+
+def test_raster_array_conform_to_with_src_mask():
+    src_data = np.array(
+        [
+            [
+                [0, 1, 1, 0],
+                [0, 1, 1, 0],
+                [0, 1, 1, 0],
+                [0, 1, 1, 0],
+            ]
+        ],
+        dtype=np.int16,
+    )
+    ref_data = np.ones((1, 2, 4), dtype=np.uint8)
+
+    with (
+        generate_raster(src_data, nodata=0, dtype=np.int16) as src,
+        generate_raster(ref_data, nodata=0, dtype=np.uint8) as ref,
+    ):
+        src_raster = RasterArray.from_raster(src)
+        ref_raster = RasterArray.from_raster(ref)
+
+    conformed = src_raster.conform_to(ref_raster)
+
+    expected_array = np.array([[[0, 1, 1, 0], [0, 1, 1, 0]]])
+    expected_mask = np.array([[[True, False, False, True], [True, False, False, True]]])
+
+    assert np.array_equal(conformed.array, expected_array)
+    assert np.array_equal(conformed.mask, expected_mask)
+    assert conformed.metadata.shape == ref_raster.metadata.shape
+    assert conformed.metadata.crs.equals(ref_raster.metadata.crs)
+    # nodata and dtype are the same as the input raster
+    assert conformed.metadata.nodata == src_raster.metadata.nodata
+    assert conformed.metadata.dtype == src_raster.metadata.dtype
+
+
+def test_raster_array_conform_to_with_ref_mask():
+    src_data = np.full((1, 4, 4), 99, dtype=np.int16)
+    ref_data = np.array(
+        [
+            [
+                [0, 0, 0, 0],
+                [0, 1, 1, 0],
+                [0, 1, 1, 0],
+                [0, 0, 0, 0],
+            ]
+        ],
+        dtype=np.uint8,
+    )
+    with (
+        generate_raster(src_data, nodata=0, dtype=np.int16) as src,
+        generate_raster(ref_data, nodata=0, dtype=np.uint8) as ref,
+    ):
+        src_raster = RasterArray.from_raster(src)
+        ref_raster = RasterArray.from_raster(ref)
+
+    conformed = src_raster.conform_to(ref_raster)
+
+    expected_array = np.array(
+        [[[0, 0, 0, 0], [0, 99, 99, 0], [0, 99, 99, 0], [0, 0, 0, 0]]]
+    )
+    expected_mask = expected_array == 0
+
+    assert np.array_equal(conformed.array, expected_array)
+    assert np.array_equal(conformed.mask, expected_mask)
+    assert conformed.metadata.shape == ref_raster.metadata.shape
+    assert conformed.metadata.crs.equals(ref_raster.metadata.crs)
+    # nodata and dtype are the same as the input raster
+    assert conformed.metadata.nodata == src_raster.metadata.nodata
+    assert conformed.metadata.dtype == src_raster.metadata.dtype
+
+
+def test_raster_array_conform_to_with_both_masked():
+    src_data = np.array(
+        [
+            [
+                [0, 99, 99, 99],
+                [0, 99, 99, 99],
+                [0, 99, 99, 99],
+                [0, 0, 0, 0],
+            ]
+        ],
+        dtype=np.int16,
+    )
+    ref_data = np.array(
+        [
+            [
+                [0, 0, 0, 0],
+                [1, 1, 1, 0],
+                [1, 1, 1, 0],
+                [1, 1, 1, 0],
+            ]
+        ],
+        dtype=np.uint8,
+    )
+    with (
+        generate_raster(src_data, nodata=0, dtype=np.int16) as src,
+        generate_raster(ref_data, nodata=0, dtype=np.uint8) as ref,
+    ):
+        src_raster = RasterArray.from_raster(src)
+        ref_raster = RasterArray.from_raster(ref)
+
+    conformed = src_raster.conform_to(ref_raster)
+
+    expected_array = np.array(
+        [[[0, 0, 0, 0], [0, 99, 99, 0], [0, 99, 99, 0], [0, 0, 0, 0]]]
+    )
+    expected_mask = expected_array == 0
+
+    assert np.array_equal(conformed.array, expected_array)
+    assert np.array_equal(conformed.mask, expected_mask)
+    assert conformed.metadata.shape == ref_raster.metadata.shape
+    assert conformed.metadata.crs.equals(ref_raster.metadata.crs)
+    # nodata and dtype are the same as the input raster
+    assert conformed.metadata.nodata == src_raster.metadata.nodata
+    assert conformed.metadata.dtype == src_raster.metadata.dtype
+
+
+def test_raster_array_conform_to_multiband():
+    src_data = np.full((2, 4, 4), 99, dtype=np.int16)
+    ref_data = np.array(
+        [
+            [
+                [0, 0, 0, 0],
+                [0, 1, 1, 0],
+                [0, 1, 1, 0],
+                [0, 0, 0, 0],
+            ]
+        ],
+        dtype=np.uint8,
+    )
+    with (
+        generate_raster(src_data, nodata=0, dtype=np.int16) as src,
+        generate_raster(ref_data, nodata=0, dtype=np.uint8) as ref,
+    ):
+        src_raster = RasterArray.from_raster(src)
+        ref_raster = RasterArray.from_raster(ref)
+
+    conformed = src_raster.conform_to(ref_raster)
+
+    expected_array = np.array(
+        [[[0, 0, 0, 0], [0, 99, 99, 0], [0, 99, 99, 0], [0, 0, 0, 0]]]
+    )
+    expected_array = np.stack([expected_array[0]] * 2, axis=0)
+    expected_mask = expected_array == 0
+
+    assert np.array_equal(conformed.array, expected_array)
+    assert np.array_equal(conformed.mask, expected_mask)
+    assert conformed.metadata.shape == (2, 4, 4)
+    assert conformed.metadata.crs.equals(ref_raster.metadata.crs)
+    # nodata and dtype are the same as the input raster
+    assert conformed.metadata.nodata == src_raster.metadata.nodata
+    assert conformed.metadata.dtype == src_raster.metadata.dtype
+
+
+def test_raster_array_conform_to_multiband_w_different_masks():
+    src_data = np.array(
+        [
+            [[99, 0], [0, 0]],
+            [[0, 99], [99, 0]],
+            [[0, 0], [0, 99]],
+            [[0, 0], [0, 0]],
+        ],
+        dtype=np.int16,
+    )
+    ref_data = np.array(
+        [
+            [
+                [1, 0],
+                [0, 1],
+            ]
+        ],
+        dtype=np.uint8,
+    )
+    with (
+        generate_raster(src_data, nodata=0, dtype=np.int16) as src,
+        generate_raster(ref_data, nodata=0, dtype=np.uint8) as ref,
+    ):
+        src_raster = RasterArray.from_raster(src)
+        ref_raster = RasterArray.from_raster(ref)
+
+    conformed = src_raster.conform_to(ref_raster)
+
+    expected_array = np.array(
+        [
+            [[99, 0], [0, 0]],
+            [[0, 0], [0, 0]],
+            [[0, 0], [0, 99]],
+            [[0, 0], [0, 0]],
+        ],
+        dtype=np.int16,
+    )
+    expected_mask = expected_array == 0
+
+    assert np.array_equal(conformed.array, expected_array)
+    assert np.array_equal(conformed.mask, expected_mask)
+    assert conformed.metadata.shape == (4, 2, 2)
+    assert conformed.metadata.crs.equals(ref_raster.metadata.crs)
+    # nodata and dtype are the same as the input raster
+    assert conformed.metadata.nodata == src_raster.metadata.nodata
+    assert conformed.metadata.dtype == src_raster.metadata.dtype
+
+
+def test_raster_array_conform_to_reprojects_resamples(raster_4326, raster_26910):
+    src_raster = raster_4326
+    ref_raster = raster_26910
+
+    conformed = src_raster.conform_to(ref_raster)
+
+    assert isinstance(conformed, RasterArray)
+    # conformed data is from the center of the src raster
+    assert conformed.array.min() > 20
+    assert conformed.array.max() < 80
+    assert conformed.metadata.crs.equals(ref_raster.metadata.crs)
+    assert conformed.metadata.width == ref_raster.metadata.width
+    assert conformed.metadata.height == ref_raster.metadata.height
+
+
+def test_raster_array_conform_to_override_nodata():
+    src_data = np.array([[[1, 0], [0, 1]]], dtype=np.int16)
+    ref_data = np.ones((1, 2, 2), dtype=np.uint8)
+    with (
+        generate_raster(src_data, nodata=0, dtype=np.int16) as src,
+        generate_raster(ref_data, nodata=0, dtype=np.uint8) as ref,
+    ):
+        src_raster = RasterArray.from_raster(src)
+        ref_raster = RasterArray.from_raster(ref)
+
+    conformed = src_raster.conform_to(ref_raster, target_nodata=-99)
+
+    assert conformed.metadata.nodata == -99
+    assert np.array_equal(conformed.array, np.array([[[1, -99], [-99, 1]]]))
+    assert np.array_equal(conformed.mask, (src_data == 0))
+
+
+def test_raster_array_conform_to_override_dtype():
+    src_data = np.array([[[1, 0], [0, 1]]], dtype=np.int16)
+    ref_data = np.ones((1, 2, 2), dtype=np.uint8)
+    with (
+        generate_raster(src_data, nodata=0, dtype=np.int16) as src,
+        generate_raster(ref_data, nodata=0, dtype=np.uint8) as ref,
+    ):
+        src_raster = RasterArray.from_raster(src)
+        ref_raster = RasterArray.from_raster(ref)
+
+    conformed = src_raster.conform_to(ref_raster, target_dtype=np.float32)
+
+    assert conformed.metadata.dtype == np.float32
+    assert conformed.array.dtype == np.float32
+    assert np.array_equal(
+        conformed.array, np.array([[[1.0, 0.0], [0.0, 1.0]]], dtype=np.float32)
+    )
+    assert np.array_equal(conformed.mask, (src_data == 0))
+
+
+## RasterArray.to_raster -------------------------------------------------------
 def test_raster_array_to_raster(raster_4_x_4_multiband, tmp_path):
     raster = RasterArray.from_raster(raster_4_x_4_multiband)
     out_path = tmp_path / "test.tiff"

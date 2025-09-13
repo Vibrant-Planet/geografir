@@ -52,6 +52,8 @@ import numpy as np
 import rasterio as rio
 
 from numpy.typing import NDArray, DTypeLike
+from rasterio.enums import Resampling
+from rasterio.warp import reproject
 
 from raster_array.exceptions import RasterArrayShapeError, RasterArrayDtypeError
 from raster_array.raster_metadata import RasterMetadata
@@ -152,6 +154,70 @@ class RasterArray:
             np.ma.MaskedArray: a 3D MaskedArray of the given band index.
         """
         return self.masked[slice(band_index - 1, band_index), :, :]
+
+    def conform_to(
+        self,
+        raster: RasterArray,
+        target_nodata: int | float | None = None,
+        target_dtype: DTypeLike | None = None,
+        resampling: Resampling = Resampling.nearest,
+    ) -> RasterArray:
+        """Conform the raster array to a given raster array.
+
+        This function can do all 3 of:
+            - Reproject the RasterArray to the given raster's CRS.
+            - Resample the RasterArray to the given raster's resolution.
+            - Clip the RasterArray to the reference rasters extent (bounding box).
+
+        Internally, this function uses the `rasterio.reproject` to handle the conform process.
+        See: https://rasterio.readthedocs.io/en/latest/api/rasterio.warp.html#rasterio.warp.reproject.
+
+        Args:
+            raster (RasterArray): the raster array to conform to
+            target_nodata (int | float | None, optional): the target nodata, this will override the current nodata value of self. Defaults to None.
+            target_dtype (DTypeLike | None, optional): the target dtype, this will override the current dtype of self. Defaults to None.
+            resampling (Resampling, optional): the resampling method. Defaults to Resampling.nearest.
+
+        Returns:
+            RasterArray: the conformed raster array
+        """
+        if not isinstance(raster, RasterArray):
+            raise ValueError("raster must be of type RasterArray")
+
+        # TODO: check that self and raster overlap, if not return self or raise
+        nodata = target_nodata or self.metadata.nodata
+        dtype = target_dtype or self.metadata.dtype
+        out_meta = self.metadata.copy(
+            nodata=nodata,
+            dtype=dtype,
+            crs=raster.metadata.crs,
+            height=raster.metadata.height,
+            transform=raster.metadata.transform,
+            width=raster.metadata.width,
+        )
+
+        out_array = np.empty(shape=out_meta.shape, dtype=out_meta.dtype)
+        out_data, _ = reproject(
+            source=self.array,
+            destination=out_array,
+            src_nodata=self.metadata.nodata,
+            src_transform=self.metadata.transform,
+            src_crs=self.metadata.crs,
+            dst_nodata=out_meta.nodata,
+            dst_transform=out_meta.transform,
+            dst_crs=out_meta.crs,
+            resampling=resampling,
+            UNIFIED_SRC_NODATA="NO",
+        )
+        out_mask = (
+            np.isnan(out_data)
+            if np.isnan(out_meta.nodata)
+            else out_data == out_meta.nodata
+        )
+        merged_mask = np.logical_or(raster.mask, out_mask)
+        out_data[merged_mask] = out_meta.nodata
+
+        return RasterArray(out_data, out_meta)
 
     def to_raster(self, filename: str) -> None:
         """Save RasterArray as a Cloud Optimized GeoTIFF (COG).
