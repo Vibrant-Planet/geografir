@@ -81,8 +81,6 @@ class BandTags:
         ...     3: {'band_name': 'green', 'wavelength': '562nm'},
         ...     4: {'band_name': 'red', 'wavelength': '655nm'}
         ... })
-        >>> print(f"Number of bands: {landsat_tags.count}")
-        Number of bands: 4
     """
 
     tags: dict[int, dict[str, str]]
@@ -172,34 +170,6 @@ class BandTags:
                 tags_by_band[tag_name][tag_value] = band_idx
 
         return tags_by_band
-
-    @property
-    def count(self) -> int:
-        """Get the highest band index that has associated tags.
-
-        This property is intended to match the behavior of rasterio.DatasetReader.count.
-
-        Returns:
-            int: The highest band index with associated tags, or 0 if no bands
-                are tagged. This value may not equal the total number of tagged
-                bands if band indices are not consecutive.
-
-        Examples:
-            Check maximum band index:
-
-            >>> consecutive_tags = BandTags({1: {'a': 'b'}, 2: {'c': 'd'}, 3: {'e': 'f'}})
-            >>> print(f"Max band index: {consecutive_tags.count}")
-            Max band index: 3
-
-            Non-consecutive band indices:
-
-            >>> sparse_tags = BandTags({1: {'a': 'b'}, 5: {'c': 'd'}})
-            >>> print(f"Max band index: {sparse_tags.count}")
-            Max band index: 5
-            >>> print(f"Tagged band count: {len(sparse_tags.band_indices)}")
-            Tagged band count: 2
-        """
-        return max(self.tags.keys()) if self.tags else 0
 
     @property
     def tag_names(self) -> Set[str]:

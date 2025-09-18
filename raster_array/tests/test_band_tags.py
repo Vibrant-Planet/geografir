@@ -30,7 +30,6 @@ def test_band_tags_init():
         "classification": {"red": 1, "green": 2},
         "tree": {"pine": 1, "maple": 3},
     }
-    assert band_tags.count == 3
     assert band_tags.tag_names == {"classification", "tree"}
     assert band_tags_dict is not band_tags.tags
 
