@@ -8,6 +8,33 @@ import rasterio as rio
 
 from raster_array.profiles import apply_geotiff_profile
 
+TAG_CLASSIFICATION_VALUES = [
+    "red",
+    "orange",
+    "yellow",
+    "green",
+    "blue",
+    "purple",
+    "pink",
+    "brown",
+    "gray",
+    "black",
+    "white",
+]
+TAG_TREE_VALUES = [
+    "pine",
+    "maple",
+    "oak",
+    "birch",
+    "cedar",
+    "fir",
+    "spruce",
+    "elm",
+    "ash",
+    "sycamore",
+    "willow",
+]
+
 
 @contextmanager
 def generate_raster(data, nodata, dtype):
@@ -32,5 +59,10 @@ def generate_raster(data, nodata, dtype):
     with rio.io.MemoryFile() as memfile:
         with memfile.open(**profile) as dataset:
             dataset.write(data)
+            for band in range(1, count + 1):
+                tags = {"classification": TAG_CLASSIFICATION_VALUES[band - 1]}
+                if band % 2 == 0:
+                    tags["tree"] = TAG_TREE_VALUES[band - 1]
+                dataset.update_tags(band, **tags)
         with memfile.open() as dataset:
             yield dataset
