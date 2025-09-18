@@ -41,7 +41,7 @@ Examples:
     >>> existing_tags = BandTags.from_raster("satellite_image.tif")
     >>>
     >>> # Add new classification tags
-    >>> updated_tags = existing_tags.put_band_tags(1, {'landcover': 'vegetation'})
+    >>> updated_tags = existing_tags.update_band_tags(1, {'landcover': 'vegetation'})
     >>>
     >>> # Write updated tags back to raster
     >>> updated_tags.write_tags("satellite_image.tif")
@@ -235,7 +235,7 @@ class BandTags:
         """
         return self.tags[band_index].copy() if band_index in self.tags else {}
 
-    def put_band_tags(self, band_index: int, tags: dict[str, str]) -> BandTags:
+    def update_band_tags(self, band_index: int, tags: dict[str, str]) -> BandTags:
         """Create a new BandTags instance with additional or updated tags for a band.
 
         Args:
@@ -257,13 +257,13 @@ class BandTags:
             Add tags to new band:
 
             >>> original = BandTags({1: {'color': 'red'}})
-            >>> updated = original.put_band_tags(2, {'color': 'green', 'type': 'visible'})
+            >>> updated = original.update_band_tags(2, {'color': 'green', 'type': 'visible'})
             >>> print(f"Updated bands: {sorted(updated.band_indices)}")
             Updated bands: [1, 2]
 
             Update existing band tags:
 
-            >>> enhanced = updated.put_band_tags(1, {'type': 'visible', 'quality': 'high'})
+            >>> enhanced = updated.update_band_tags(1, {'type': 'visible', 'quality': 'high'})
             >>> red_tags = enhanced.get_band_tags(1)
             >>> print(red_tags)
             {'color': 'red', 'type': 'visible', 'quality': 'high'}
@@ -271,9 +271,9 @@ class BandTags:
             Chain tag additions:
 
             >>> final = (BandTags()
-            ...          .put_band_tags(1, {'color': 'red'})
-            ...          .put_band_tags(2, {'color': 'green'})
-            ...          .put_band_tags(3, {'color': 'blue'}))
+            ...          .update_band_tags(1, {'color': 'red'})
+            ...          .update_band_tags(2, {'color': 'green'})
+            ...          .update_band_tags(3, {'color': 'blue'}))
             >>> print(f"RGB bands: {sorted(final.band_indices)}")
             RGB bands: [1, 2, 3]
         """

@@ -55,11 +55,11 @@ def test_band_tags_get_band_tags():
     assert band_tags.get_band_tags(99) == {}
 
 
-def test_band_tags_put_band_tags():
+def test_band_tags_update_band_tags():
     band_tags = BandTags({1: {"classification": "red"}})
-    band_tags_1 = band_tags.put_band_tags(1, {"tree": "pine"})
-    band_tags_2 = band_tags_1.put_band_tags(2, {"classification": "green"})
-    band_tags_3 = band_tags_2.put_band_tags(1, {"classification": "blue"})
+    band_tags_1 = band_tags.update_band_tags(1, {"tree": "pine"})
+    band_tags_2 = band_tags_1.update_band_tags(2, {"classification": "green"})
+    band_tags_3 = band_tags_2.update_band_tags(1, {"classification": "blue"})
 
     assert band_tags_1.tags[1] == {"classification": "red", "tree": "pine"}
     assert band_tags_2.tags[1] == {"classification": "red", "tree": "pine"}
