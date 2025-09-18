@@ -8,7 +8,11 @@ import rasterio as rio
 
 from raster_array.exceptions import RasterArrayShapeError, RasterArrayDtypeError
 from raster_array.raster_metadata import RasterMetadata
-from raster_array.raster_array import RasterArray, ensure_valid_nodata
+from raster_array.raster_array import (
+    RasterArray,
+    ensure_band_index,
+    ensure_valid_nodata,
+)
 from raster_array.raster_test_helpers import generate_raster
 
 
@@ -518,15 +522,50 @@ def test_from_raster_band_index(raster_4_x_4_multiband):
     all_bands = RasterArray.from_raster(raster_4_x_4_multiband, band_index=None)
     band_1 = RasterArray.from_raster(raster_4_x_4_multiband, band_index=1)
     band_2 = RasterArray.from_raster(raster_4_x_4_multiband, band_index=2)
+    all_with_index = RasterArray.from_raster(raster_4_x_4_multiband, band_index=[1, 2])
 
     assert np.array_equal(all_bands.array[0:1, :, :], band_1.array)
     assert np.array_equal(all_bands.array[1:2, :, :], band_2.array)
+    assert np.array_equal(all_bands.array, all_with_index.array)
     assert all_bands.metadata.count == 2
     assert band_1.metadata.count == 1
     assert band_2.metadata.count == 1
+    assert all_with_index.metadata.count == 2
 
 
 # test helper methods ----------------------------------------------------------
+def test_ensure_valid_band_index():
+    assert ensure_band_index(1) == [1]
+    assert ensure_band_index([4]) == [4]
+    assert ensure_band_index([1, 3, 5]) == [1, 3, 5]
+    assert ensure_band_index(None) is None
+
+    with pytest.raises(
+        TypeError, match="band_index must be an integer or a list of integers or None."
+    ):
+        ensure_band_index("a")
+
+    with pytest.raises(
+        TypeError, match="band_index must be an integer or a list of integers or None."
+    ):
+        ensure_band_index(RasterArray)
+
+    with pytest.raises(
+        TypeError, match="band_index must be an integer or a list of integers or None."
+    ):
+        ensure_band_index([])
+
+    with pytest.raises(
+        TypeError, match="band_index must be an integer or a list of integers or None."
+    ):
+        ensure_band_index(["a", "b", "c"])
+
+    with pytest.raises(
+        TypeError, match="band_index must be an integer or a list of integers or None."
+    ):
+        ensure_band_index([None])
+
+
 def test_ensure_valid_nodata():
     # coerce values if necessary
     assert ensure_valid_nodata(0, np.int16) == 0

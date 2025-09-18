@@ -244,7 +244,7 @@ class RasterArray:
     @staticmethod
     def from_raster(
         raster: str | rio.DatasetReader,
-        band_index: int | None = None,
+        band_index: int | list[int] | None = None,
         target_nodata: int | float | None = None,
         target_dtype: DTypeLike | None = None,
     ) -> RasterArray:
@@ -252,8 +252,8 @@ class RasterArray:
 
         Args:
             raster (str | rio.DatasetReader): Path to the raster file or DatasetReader.
-            band_index (int | None): Only read the given band index from the raster.
-                This will still return a 3D array. Defaults to None which will read all bands.
+            band_index (int | list[int] | None): Only read the given band index(es) from the raster.
+                This will always return a 3D array. Defaults to None which will read all bands.
             target_nodata (int | float | None): Target nodata value, this will override
                 the current nodata value of the raster. Defaults to None.
             target_dtype (DTypeLike | None): Target data type, this will override
@@ -277,7 +277,7 @@ class RasterArray:
     @staticmethod
     def _from_datasetreader(
         src: rio.DatasetReader,
-        band_index: int | None = None,
+        band_index: int | list[int] | None = None,
         target_nodata: int | float | None = None,
         target_dtype: DTypeLike | None = None,
     ) -> RasterArray:
@@ -291,7 +291,7 @@ class RasterArray:
             else src_metadata.nodata
         )
         transform = src_metadata.transform
-        indexes = [band_index] if band_index else None
+        indexes = ensure_band_index(band_index)
         n_bands = len(indexes) if indexes else src_metadata.count
         out_shape = (
             (n_bands, src_metadata.height, src_metadata.width)
@@ -328,6 +328,33 @@ class RasterArray:
 
 
 # private helpers --------------------------------------------------------------
+def ensure_band_index(band_index: int | list[int] | None) -> list[int] | None:
+    """Validate and coerce band index(es) to a list of integers.
+
+    Args:
+        band_index (int | list[int] | None): The band index(es) to validate and coerce.
+
+    Returns:
+        list[int] | None: A list of band indices or None if the input is None.
+
+    Raises:
+        TypeError: If the band_index is not an integer, list of integers, or None.
+    """
+    if band_index is None:
+        return band_index
+
+    if isinstance(band_index, int):
+        band_index = [band_index]
+
+    if type(band_index) is list:
+        if len(band_index) > 0 and all(
+            [isinstance(index, int) for index in band_index]
+        ):
+            return band_index
+
+    raise TypeError("band_index must be an integer or a list of integers or None.")
+
+
 def ensure_valid_nodata(nodata: int | float | None, dtype: DTypeLike) -> int | float:
     """Validate and coerce a nodata value to be compatible with a given numpy dtype.
 
