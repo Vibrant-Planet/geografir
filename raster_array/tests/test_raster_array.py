@@ -514,6 +514,18 @@ def test_from_raster_simple_target_nodata_or_dtype_coercion(
             assert raster.metadata.nodata == target_nodata
 
 
+def test_from_raster_band_index(raster_4_x_4_multiband):
+    all_bands = RasterArray.from_raster(raster_4_x_4_multiband, band_index=None)
+    band_1 = RasterArray.from_raster(raster_4_x_4_multiband, band_index=1)
+    band_2 = RasterArray.from_raster(raster_4_x_4_multiband, band_index=2)
+
+    assert np.array_equal(all_bands.array[0:1, :, :], band_1.array)
+    assert np.array_equal(all_bands.array[1:2, :, :], band_2.array)
+    assert all_bands.metadata.count == 2
+    assert band_1.metadata.count == 1
+    assert band_2.metadata.count == 1
+
+
 # test helper methods ----------------------------------------------------------
 def test_ensure_valid_nodata():
     # coerce values if necessary
