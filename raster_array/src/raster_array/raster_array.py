@@ -344,7 +344,7 @@ def ensure_band_index(band_index: int | list[int] | None) -> list[int] | None:
         return band_index
 
     if isinstance(band_index, int):
-        band_index = [band_index]
+        return [band_index]
 
     if type(band_index) is list:
         if len(band_index) > 0 and all(
