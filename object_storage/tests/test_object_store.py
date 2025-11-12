@@ -1,11 +1,12 @@
 import os
-import pytest
-import boto3
-from moto import mock_aws
 from tempfile import TemporaryDirectory
 
-from object_storage.object_store import ObjectStore
+import boto3
+import pytest
+from moto import mock_aws
+
 from object_storage.object_location import ObjectLocation
+from object_storage.object_store import ObjectStore
 
 TEST_BUCKET = "test_bucket"
 
@@ -134,9 +135,11 @@ def test_upload_directory(s3):
 
     upload_location = ObjectLocation(bucket=TEST_BUCKET, path="uploads/")
 
+    files = ["upload1.txt", "upload2.txt", "subdir/upload3.txt", "subdir/upload4.txt"]
     with TemporaryDirectory() as tmpdir:
-        for i in range(2):
-            filepath = os.path.join(tmpdir, f"upload{i}.txt")
+        os.mkdir(os.path.join(tmpdir, "subdir"))
+        for file in files:
+            filepath = os.path.join(tmpdir, file)
             with open(filepath, "w") as f:
                 f.write("upload me!")
 
@@ -145,14 +148,11 @@ def test_upload_directory(s3):
             local_directory=tmpdir,
         )
 
-    with TemporaryDirectory() as tmpdir:
-        local_filenames = store.download_directory(
-            object_location=upload_location,
-            local_directory=tmpdir,
-        )
-        for i in range(2):
-            local_filename = os.path.join(tmpdir, f"upload{i}.txt")
-            assert local_filename in local_filenames
+    uploaded_files = store.list_files(upload_location)
+    expected_files = [f"uploads/{f}" for f in files]
+
+    for location in uploaded_files:
+        assert location.path in expected_files
 
 
 def test_remote_file_exists(s3):
