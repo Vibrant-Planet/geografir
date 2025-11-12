@@ -293,7 +293,9 @@ class ObjectStore:
         """Upload all files from a local directory to S3.
 
         Performs bulk upload of all files in the specified local directory to S3
-        storage, creating individual S3 objects for each local file.
+        storage, creating individual S3 objects for each local file. The directory
+        structure of the local directory will be preserved in S3. File names
+        will be the same, and subdirectories will be preserved.
 
         Args:
             object_location (ObjectLocation): The base S3 location for uploaded files.
@@ -312,16 +314,24 @@ class ObjectStore:
             >>> # Uploads /local/backup/file1.txt to s3://backup/daily/file1.txt
             >>> # Uploads /local/backup/file2.txt to s3://backup/daily/file2.txt
         """
-        filenames = os.listdir(local_directory)
+        for root, _, files in os.walk(local_directory):
+            for file in files:
+                local_path = os.path.join(root, file)
+                relative_path = str(os.path.relpath(local_path, local_directory))
+                s3_location = object_location.extend(relative_path)
 
-        for filename in filenames:
-            local_filepath = os.path.join(local_directory, filename)
-            remote_location = object_location.extend(filename)
+                self.upload_file(s3_location, local_path)
 
-            self.upload_file(
-                object_location=remote_location,
-                local_filepath=local_filepath,
-            )
+        # filenames = os.listdir(local_directory)
+
+        # for filename in filenames:
+        #     local_filepath = os.path.join(local_directory, filename)
+        #     remote_location = object_location.extend(filename)
+
+        #     self.upload_file(
+        #         object_location=remote_location,
+        #         local_filepath=local_filepath,
+        #     )
 
     def remote_file_exists(
         self,
