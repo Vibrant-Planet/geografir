@@ -322,17 +322,6 @@ class ObjectStore:
 
                 self.upload_file(s3_location, local_path)
 
-        # filenames = os.listdir(local_directory)
-
-        # for filename in filenames:
-        #     local_filepath = os.path.join(local_directory, filename)
-        #     remote_location = object_location.extend(filename)
-
-        #     self.upload_file(
-        #         object_location=remote_location,
-        #         local_filepath=local_filepath,
-        #     )
-
     def remote_file_exists(
         self,
         object_location: ObjectLocation,
