@@ -144,8 +144,7 @@ def test_upload_directory(s3):
                 f.write("upload me!")
 
         store.upload_directory(
-            object_location=upload_location,
-            local_directory=tmpdir,
+            object_location=upload_location, local_directory=tmpdir, recursive=True
         )
 
     uploaded_files = store.list_files(upload_location)
@@ -153,6 +152,33 @@ def test_upload_directory(s3):
 
     for location in uploaded_files:
         assert location.path in expected_files
+        assert len(uploaded_files) == 4
+
+
+def test_upload_directory_recursive_false(s3):
+    create_files(s3)
+    store = ObjectStore(s3_client=s3)
+
+    upload_location = ObjectLocation(bucket=TEST_BUCKET, path="uploads/")
+
+    files = ["upload1.txt", "upload2.txt", "subdir/upload3.txt", "subdir/upload4.txt"]
+    with TemporaryDirectory() as tmpdir:
+        os.mkdir(os.path.join(tmpdir, "subdir"))
+        for file in files:
+            filepath = os.path.join(tmpdir, file)
+            with open(filepath, "w") as f:
+                f.write("upload me!")
+
+        store.upload_directory(
+            object_location=upload_location, local_directory=tmpdir, recursive=False
+        )
+
+    uploaded_files = store.list_files(upload_location)
+    expected_files = ["uploads/upload1.txt", "uploads/upload2.txt"]
+
+    for location in uploaded_files:
+        assert location.path in expected_files
+        assert len(uploaded_files) == 2
 
 
 def test_remote_file_exists(s3):
