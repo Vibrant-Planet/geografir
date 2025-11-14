@@ -289,6 +289,7 @@ class ObjectStore:
         self,
         object_location: ObjectLocation,
         local_directory: str,
+        recursive: bool = False,
     ) -> None:
         """Upload all files from a local directory to S3.
 
@@ -302,9 +303,12 @@ class ObjectStore:
                 Individual files will be stored with paths created by extending this
                 base location with each local filename.
             local_directory (str): The local directory containing files to upload.
-                Only immediate directory contents are processed; subdirectories are
-                not traversed recursively. All files in the directory must be readable
-                and will be uploaded to S3.
+                If recursive=False, only immediate directory contents are processed.
+                If recursive=True, all subdirectories are traversed and the directory
+                structure is preserved in S3.
+            recursive (bool, optional): If True crawl the local directory and upload
+                all files from any subdirectories. The directory structure will be
+                preserved in S3. Defaults to False.
 
         Examples:
             Upload directory contents:
@@ -314,7 +318,12 @@ class ObjectStore:
             >>> # Uploads /local/backup/file1.txt to s3://backup/daily/file1.txt
             >>> # Uploads /local/backup/file2.txt to s3://backup/daily/file2.txt
         """
-        for root, _, files in os.walk(local_directory):
+        # When topdown=True the the tuple for the diretory is generated before
+        # its subdirectories. This means local_directory is always first
+        directory_tree = list(os.walk(local_directory, topdown=True))
+        directory_tree = directory_tree if recursive else directory_tree[:1]
+
+        for root, _dirs, files in directory_tree:
             for file in files:
                 local_path = os.path.join(root, file)
                 relative_path = str(os.path.relpath(local_path, local_directory))
