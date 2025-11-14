@@ -318,7 +318,7 @@ class ObjectStore:
             >>> # Uploads /local/backup/file1.txt to s3://backup/daily/file1.txt
             >>> # Uploads /local/backup/file2.txt to s3://backup/daily/file2.txt
         """
-        # When topdwon=True the the tuple for the diretory is generated before
+        # When topdown=True the the tuple for the diretory is generated before
         # its subdirectories. This means local_directory is always first
         directory_tree = list(os.walk(local_directory, topdown=True))
         directory_tree = directory_tree if recursive else directory_tree[:1]
